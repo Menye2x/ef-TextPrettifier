@@ -1,0 +1,43 @@
+# --------------------------------------------------
+# .ef Text Prettifier — Git ignore
+# --------------------------------------------------
+
+# OS files
+.DS_Store
+.AppleDouble
+.LSOverride
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Editor / IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Temporary / local files
+*.tmp
+*.temp
+*.log
+.cache/
+
+# Generated backup HTML files from local editing
+*.backup*.html
+*.bak
+
+# Local test/export folders
+/exports/
+/test-exports/
+/tmp/
+
+# Encryption credential files contain secrets and should not be committed
+*.password-recovery.txt
+
+# Convenience ZIP packages may contain the encrypted file + plaintext credentials
+*-encrypted.zip
+
+# Optional local/private material
+/private/
+/secrets/

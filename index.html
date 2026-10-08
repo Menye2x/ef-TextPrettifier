@@ -1,0 +1,1393 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+<title>.ef Text Prettifier</title>
+<style>
+:root{--bg:#f6f5f1;--panel:#fff;--ink:#1d1d1b;--mute:#6b6a64;--line:#dedbd2;--acc:#1f5f4a;--accink:#fff;--code:#efece4;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#171715;--panel:#1f1f1c;--ink:#ecebe5;--mute:#9a988f;--line:#38372f;--acc:#6fcfa8;--accink:#10231b;--code:#2a2a26}}
+:root[data-theme="dark"]{--bg:#171715;--panel:#1f1f1c;--ink:#ecebe5;--mute:#9a988f;--line:#38372f;--acc:#6fcfa8;--accink:#10231b;--code:#2a2a26}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",sans-serif}
+header{display:flex;flex-wrap:wrap;gap:.5rem;align-items:center;padding:.8rem 1rem;border-bottom:1px solid var(--line);background:var(--panel)}
+header h1{flex:1 0 100%;font-size:1rem;margin:0 0 .15rem 0;line-height:1.2}
+header h1 .app-title{display:block;font-size:clamp(1.45rem,2.4vw,1.85rem);font-weight:800;letter-spacing:-.02em}
+header h1 small{display:block;margin-top:.18rem;color:var(--mute);font-weight:400;font-size:.9rem;line-height:1.35}
+button,label.btn,input.t{font:inherit;font-size:.85rem;padding:.4rem .8rem;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);cursor:pointer}
+button.p,label.btn.p{background:var(--acc);color:var(--accink);border-color:var(--acc)}
+button.danger{background:#D92D20;color:#fff;border-color:#D92D20}
+button.danger:hover{background:#B42318;border-color:#B42318}
+button.danger:focus-visible{outline:2px solid #D92D20;outline-offset:2px}
+input[type=file]{display:none}
+input.t{cursor:text;width:100%}
+#st{font-size:.8rem;color:var(--mute);width:100%}
+#pre{display:flex;flex-wrap:wrap;gap:.4rem;align-items:center;padding:.6rem 1rem 0;max-width:1400px;margin:auto}
+#pre b{font-size:.75rem;letter-spacing:.08em;text-transform:uppercase;color:var(--mute);margin-right:.3rem}
+.chip{border-radius:99px;padding:.25rem .75rem}.chip.on{background:var(--acc);color:var(--accink);border-color:var(--acc)}
+#pe{max-width:1400px;margin:.6rem auto 0;padding:0 1rem}
+#pe[hidden]{display:none}
+#pe .box{background:var(--panel);border:1px solid var(--acc);border-radius:12px;padding:.8rem;display:grid;gap:.5rem}
+#pe h3{margin:0}#pe p{margin:0;color:var(--mute);font-size:.9rem}
+#pe ul{margin:0;padding-left:1.2rem;font-size:.85rem;font-family:ui-monospace,Menlo,Consolas,monospace}
+#pe pre{margin:0;padding:.7rem;background:var(--code);border-radius:8px;overflow-x:auto;font-size:13px;line-height:1.5}
+#pe .r{border:1px dashed var(--line);border-radius:8px;padding:.2rem .8rem;overflow-x:auto}
+#pe .row{display:flex;gap:.4rem;flex-wrap:wrap}
+.code-duo{display:grid;grid-template-columns:1fr 1fr;gap:.6rem}
+.code-card{min-width:0}
+.code-card label{display:block;font-size:.7rem;letter-spacing:.08em;text-transform:uppercase;color:var(--mute);margin:0 0 .25rem .15rem}
+.code-card pre{height:100%;max-height:280px;overflow:auto;white-space:pre;tab-size:2}
+.syntax{font:13px/1.65 ui-monospace,Menlo,Consolas,monospace}.syn-neutral-marker{color:#D92D20;font-weight:700}
+/* Syntax colours are deliberately high-contrast against the editor background. */
+.syn-punc{color:#7A4300}.syn-key{color:#6B2FB9;font-weight:700}.syn-mark{color:#005B9A;font-weight:700}.syn-url{color:#075E45}.syn-comment{color:#5B5A55;font-style:italic}.syn-html{color:#8E175F}.syn-number{color:#983B00}.syn-neutral-marker{color:#D92D20}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+ .syn-punc{color:#FFC06A}.syn-key{color:#CAA7FF}.syn-mark{color:#69D1FF}.syn-url{color:#73E8B8}.syn-comment{color:#C3C1B8}.syn-html{color:#FF91CF}.syn-number{color:#FFB37F}.syn-neutral-marker{color:#FF6B61}
+}}
+:root[data-theme="dark"]{
+ .syn-punc{color:#FFC06A}.syn-key{color:#CAA7FF}.syn-mark{color:#69D1FF}.syn-url{color:#73E8B8}.syn-comment{color:#C3C1B8}.syn-html{color:#FF91CF}.syn-number{color:#FFB37F}.syn-neutral-marker{color:#FF6B61}
+}
+.history-btn:disabled{opacity:.45;cursor:not-allowed}.history-btn:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+.setas-popover{position:fixed;z-index:80;display:grid;grid-template-columns:auto minmax(0,1fr);align-items:center;gap:.5rem;padding:.6rem .7rem;border:1px solid var(--line);border-radius:10px;background:var(--panel);color:var(--ink);box-shadow:0 12px 34px rgba(0,0,0,.22);backdrop-filter:blur(10px);width:min(390px,calc(100vw - 16px));max-width:390px}
+.setas-popover[hidden]{display:none}
+.setas-label{font-size:.78rem;font-weight:700;white-space:nowrap;color:var(--mute)}
+#setasSelect{font:inherit;font-size:.82rem;min-width:0;width:100%;max-width:250px;padding:.38rem .55rem;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);outline:none}
+#setasSelect:focus-visible,#listFormatSelect:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+.setas-extra{grid-column:1 / -1;margin-top:.2rem;padding-top:.55rem;border-top:1px solid var(--line);display:grid;gap:.45rem}
+.setas-extra[hidden]{display:none}
+.setas-extra-title{font-size:.7rem;letter-spacing:.07em;text-transform:uppercase;color:var(--mute);font-weight:700}
+.list-tools{display:flex;gap:.4rem;align-items:center;flex-wrap:nowrap;min-width:0}
+#listFormatSelect{font:inherit;font-size:.8rem;min-width:0;flex:1 1 auto;max-width:270px;padding:.35rem .5rem;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink)}
+#applyListFormat{flex:0 0 auto}
+.memo-clip{display:grid;gap:.4rem;min-width:0}
+.memo-clip pre{margin:0;padding:.5rem .65rem;background:var(--code);border:1px solid var(--line);border-radius:7px;max-height:110px;overflow:auto;white-space:pre-wrap;font:12px/1.5 ui-monospace,Menlo,Consolas,monospace}
+.memo-actions{display:flex;gap:.4rem;flex-wrap:wrap}
+.memo-note{font-size:.75rem;color:var(--mute)}
+@media(max-width:480px){.setas-popover{left:8px!important;right:8px;width:auto;grid-template-columns:auto minmax(0,1fr)}.setas-label{display:none}#setasSelect{width:100%;max-width:none}.setas-extra{width:100%}}
+@media(max-width:700px){.code-duo{grid-template-columns:1fr}}
+\
+.view-tabs{display:flex;gap:.4rem;align-items:center;flex:0 0 auto}
+.tab-btn{border-radius:8px;padding:.4rem .75rem}
+.tab-btn.active{background:var(--acc);color:var(--accink);border-color:var(--acc)}
+.tab-btn#tabCrypto.active{background:#1687F8;color:#fff;border-color:#1687F8}
+.crypto-view{max-width:1400px;margin:auto;padding:1rem;display:none}
+.crypto-view.active{display:block}
+.crypto-grid{display:grid;grid-template-columns:1fr;gap:1rem;align-items:start}
+.crypto-card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:1rem;min-width:0}
+.crypto-card h2{margin:.05rem 0 .25rem;font-size:1rem;display:flex;align-items:center;gap:.45rem;flex-wrap:wrap}
+.crypto-info{position:relative;display:inline-flex;align-items:center}
+.crypto-info-btn{width:1.35rem;height:1.35rem;padding:0;border:1px solid var(--line);border-radius:50%;background:var(--bg);color:var(--mute);display:grid;place-items:center;font-weight:800;font-size:.72rem;line-height:1;cursor:pointer}
+.crypto-info-btn:hover{color:var(--ink);background:var(--code)}
+.crypto-info-btn:focus-visible{outline:2px solid #1687F8;outline-offset:2px}
+.crypto-info-popover{position:absolute;left:0;top:calc(100% + .55rem);z-index:10000;width:min(920px,calc(100vw - 2rem));padding:.85rem;background:var(--panel);border:1px solid var(--line);border-radius:12px;box-shadow:0 18px 55px rgba(0,0,0,.34);font-size:.82rem;line-height:1.45;color:var(--ink)}
+.crypto-info-popover[hidden]{display:none}
+#cryptoImportInfoPopover{width:max-content;max-width:min(760px,calc(100vw - 2rem));white-space:normal}
+#cryptoImportInfoPopover p{margin:0}
+.crypto-info-detail{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.6rem}
+.crypto-info-block{padding:.7rem .75rem;border:1px solid var(--line);border-radius:9px;background:var(--code);min-width:0}
+.crypto-info-block .k{display:flex;align-items:center;gap:.4rem;margin:0 0 .25rem;font-weight:800;font-size:.76rem;letter-spacing:.02em}
+.crypto-info-block .dot{width:.45rem;height:.45rem;border-radius:50%;flex:0 0 auto;background:var(--acc)}
+.crypto-info-block.core .dot{background:#1687F8}.crypto-info-block.password .dot{background:#8B5CF6}.crypto-info-block.recovery .dot{background:#D92D20}.crypto-info-block.file .dot{background:#0E9F6E}.crypto-info-block.runtime .dot{background:#D48A00}.crypto-info-block.rule .dot{background:#6B7280}
+.crypto-info-block p{margin:0;color:var(--mute)}
+.crypto-info-block strong{color:var(--ink)}
+.crypto-info-block code{font-size:.9em}
+@media(max-width:760px){.crypto-info-popover{width:min(92vw,560px)}#cryptoImportInfoPopover{width:auto;max-width:none}.crypto-info-detail{grid-template-columns:repeat(2,minmax(0,1fr));max-height:68vh;overflow:auto}}
+@media(max-width:520px){.crypto-info-detail{grid-template-columns:1fr}}
+.password-eye .fa-solid{font-size:.95rem}
+.password-eye{font-family:inherit}
+.crypto-encrypted-modal{position:fixed;inset:0;z-index:1001;display:flex;align-items:center;justify-content:center;padding:1rem;background:rgba(0,0,0,.58);backdrop-filter:blur(8px)}
+.crypto-encrypted-modal[hidden]{display:none}
+.crypto-encrypted-dialog{width:min(100%,820px);max-height:min(86vh,760px);background:var(--panel);border:1px solid var(--line);border-radius:14px;box-shadow:0 24px 90px rgba(0,0,0,.42);padding:1rem;display:flex;flex-direction:column;gap:.7rem}
+.crypto-encrypted-dialog h3{margin:0;font-size:1.05rem}
+.crypto-encrypted-dialog p{margin:0;color:var(--mute);font-size:.84rem}
+.crypto-encrypted-dialog pre{margin:0;flex:1;min-height:260px;max-height:62vh;overflow:auto;padding:.8rem;background:var(--code);border:1px solid var(--line);border-radius:9px;font:12px/1.55 ui-monospace,Menlo,Consolas,monospace;white-space:pre-wrap;overflow-wrap:anywhere}
+.crypto-encrypted-dialog .row{display:flex;justify-content:flex-end;gap:.8rem;flex-wrap:wrap;margin-top:.15rem}
+.crypto-card h3{margin:1rem 0 .35rem;font-size:.8rem;letter-spacing:.06em;text-transform:uppercase;color:var(--mute)}
+.crypto-card p{margin:.35rem 0;color:var(--mute);font-size:.88rem}
+.crypto-card textarea,.crypto-card input[type=text],.crypto-card input[type=password]{width:100%;min-height:auto;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);padding:.55rem .65rem;font:13px/1.5 ui-monospace,Menlo,Consolas,monospace;outline:none}
+.crypto-card textarea{min-height:180px;resize:vertical}
+.crypto-card input:focus-visible,.crypto-card textarea:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+.crypto-row{display:flex;gap:.65rem;flex-wrap:wrap;align-items:center;margin-top:.7rem}
+.crypto-row.tight{gap:.5rem}
+.crypto-row .grow{flex:1 1 220px;min-width:0}
+.crypto-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.6rem;margin-top:.8rem}
+.crypto-actions button{width:100%}
+.crypto-view button.p{background:#1687F8;color:#fff;border-color:#1687F8}
+.crypto-view button.p:hover{background:#0B6FD6;border-color:#0B6FD6}
+.crypto-view button.p:focus-visible{outline:2px solid #1687F8;outline-offset:2px}
+.crypto-source{margin:.65rem 0 0;padding:.75rem;background:var(--code);border:1px solid var(--line);border-radius:10px}
+.crypto-source textarea{min-height:220px;background:var(--panel)}
+.crypto-source .crypto-small{margin-top:.35rem}
+.crypto-export{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.6rem;margin-top:.8rem}
+.crypto-export button{width:100%}
+.crypto-export button:disabled{opacity:.45;cursor:not-allowed}
+#viewEncryptedText:disabled{opacity:.35!important;cursor:not-allowed}
+#encryptCurrent{transition:background .16s ease,border-color .16s ease,opacity .16s ease,box-shadow .16s ease}
+#encryptCurrent.crypto-invalid{background:#D92D20;color:#fff;border-color:#D92D20;cursor:not-allowed;opacity:1}
+#encryptCurrent.crypto-ready{background:#1F9D55;color:#fff;border-color:#1F9D55;cursor:pointer;opacity:1;box-shadow:0 0 0 2px rgba(31,157,85,.12)}
+#encryptCurrent.crypto-ready:hover{background:#187A43;border-color:#187A43}
+.crypto-password-state{margin-top:.45rem;display:flex;flex-wrap:wrap;gap:.45rem .8rem;align-items:center;font-size:.78rem;line-height:1.4}
+.crypto-password-count{color:var(--mute);font:700 12px/1 ui-monospace,Menlo,Consolas,monospace}
+.crypto-password-state.invalid{color:#D92D20}
+.crypto-password-state.valid{color:#1F9D55}
+.crypto-password-state .state-message{font-weight:700}
+.crypto-file-note{padding:.65rem .75rem;margin-top:.7rem;background:rgba(22,135,248,.08);border-left:4px solid #1687F8;border-radius:8px;font-size:.82rem}
+.crypto-file-note strong{color:#1687F8}
+
+.crypto-import-layout{display:grid;grid-template-columns:minmax(0,1fr) minmax(340px,.95fr);gap:1rem;align-items:start}
+.crypto-import-controls{min-width:0}
+.crypto-readonly{margin:0;padding:.8rem;background:var(--code);border:1px solid var(--line);border-radius:10px;min-width:0}
+.crypto-readonly h3{margin:.05rem 0 .2rem;font-size:.85rem}
+.crypto-readonly p{margin:.15rem 0 .6rem}
+.crypto-readonly textarea{min-height:420px;height:clamp(300px,55vh,620px);background:var(--panel);cursor:default;resize:vertical}
+.crypto-readonly-status{min-height:1.2rem;margin-top:.45rem;font-size:.78rem;color:var(--mute)}
+.crypto-readonly-actions{display:flex;justify-content:flex-end;gap:.8rem;flex-wrap:wrap;margin-top:.75rem}
+.crypto-readonly-actions button{white-space:normal}
+#cryptoReleaseEditor.crypto-release-done{background:#1F9D55;color:#fff;border-color:#1F9D55;cursor:pointer;opacity:1}
+#cryptoReleaseEditor.crypto-release-done:hover{background:#187A43;border-color:#187A43}
+#cryptoReleaseEditor.crypto-release-done:focus-visible{outline:2px solid #1F9D55;outline-offset:2px}
+.password-field{position:relative;margin-top:.15rem}
+.password-field input{padding-right:3rem!important}
+.password-eye{position:absolute;right:.35rem;top:50%;transform:translateY(-50%);width:2.25rem;height:2.25rem;padding:.35rem;border:0;border-radius:7px;background:transparent;color:var(--mute);cursor:pointer;display:grid;place-items:center}
+.password-eye:hover{background:var(--code);color:var(--ink)}
+.password-eye:focus-visible{outline:2px solid #1687F8;outline-offset:2px}
+.crypto-password-dialog .password-field{margin-top:.8rem}
+.crypto-password-dialog .password-field input{margin-top:0}
+@media(max-width:899px){.crypto-export{grid-template-columns:1fr}.crypto-import-layout{grid-template-columns:1fr}.crypto-readonly textarea{height:360px}}
+.crypto-secret{padding:.75rem;background:var(--code);border:1px dashed var(--line);border-radius:10px;overflow-wrap:anywhere}
+.crypto-secret code{font:600 13px/1.5 ui-monospace,Menlo,Consolas,monospace}
+.crypto-warning{margin-top:.75rem;padding:.65rem .75rem;border-left:4px solid #D92D20;background:rgba(217,45,32,.08);border-radius:8px;font-size:.82rem}
+.crypto-status{min-height:1.35rem;margin-top:.75rem;font-size:.82rem;color:var(--mute)}
+.crypto-status.ok{color:var(--acc)}
+.crypto-status.err{color:#D92D20}
+.crypto-file{display:none}
+.crypto-small{font-size:.75rem;color:var(--mute)}
+.crypto-divider{height:1px;background:var(--line);margin:1rem 0}
+@media(max-width:899px){.crypto-grid{grid-template-columns:1fr}.crypto-actions{grid-template-columns:1fr}}
+
+main{display:grid;grid-template-columns:1fr 1fr;gap:1rem;padding:1rem;max-width:1400px;margin:auto}
+@media(max-width:899px){main{grid-template-columns:1fr}}
+.pane{background:var(--panel);border:1px solid var(--line);border-radius:12px;min-width:0;display:flex;flex-direction:column;height:var(--ph,70vh);min-height:240px;position:relative;overflow:hidden}
+.pane>h2{flex-shrink:0;margin:0;padding:.5rem .9rem;font-size:.75rem;letter-spacing:.08em;text-transform:uppercase;color:var(--mute);border-bottom:1px solid var(--line)}
+textarea{width:100%;min-height:60vh;border:0;background:transparent;color:var(--ink);padding:.9rem;font:14px/1.6 ui-monospace,Menlo,Consolas,monospace;resize:vertical;outline:none}
+#out{padding:1rem 1.3rem;flex:1;min-height:0;overflow:auto}
+.editor-stack{position:relative;flex:1;min-height:0;overflow:hidden;background:var(--panel)}
+#src,#srcCode{position:absolute;inset:0;width:100%;height:100%;margin:0;padding:.9rem;border:0;font:14px/1.6 ui-monospace,Menlo,Consolas,monospace;white-space:pre-wrap;overflow:auto;tab-size:2}
+#src{z-index:2;resize:none;background:transparent;color:transparent;-webkit-text-fill-color:transparent;caret-color:var(--ink);outline:none}
+#src::selection{background:rgba(31,95,74,.25)}
+#srcCode{z-index:1;pointer-events:none;color:var(--ink)}
+#selectionMeasure{position:absolute;inset:0;z-index:0;padding:.9rem;font:14px/1.6 ui-monospace,Menlo,Consolas,monospace;white-space:pre-wrap;overflow:auto;overflow-wrap:break-word;word-break:break-word;tab-size:2;visibility:hidden;pointer-events:none;color:var(--ink)}
+#srcCode .syn-punc,#srcCode .syn-key,#srcCode .syn-mark,#srcCode .syn-url,#srcCode .syn-comment,#srcCode .syn-html,#srcCode .syn-number,#srcCode .syn-neutral-marker{display:inline}
+.md-modal{position:fixed;inset:0;z-index:50;display:flex;align-items:center;justify-content:center;padding:1rem;background:rgba(0,0,0,.45);backdrop-filter:blur(6px)}
+.md-modal[hidden]{display:none}
+.md-dialog{width:min(100%,1000px);max-height:min(85vh,900px);display:flex;flex-direction:column;gap:.7rem;background:var(--panel);border:1px solid var(--line);border-radius:14px;box-shadow:0 20px 70px rgba(0,0,0,.28);overflow:hidden}
+.md-dialog h3{margin:0;padding:1rem 1rem .25rem;font-size:1rem}
+.md-dialog .md-sub{padding:0 1rem;color:var(--mute);font-size:.8rem}
+#mdmodalout{margin:0 1rem;padding:.9rem;background:var(--code);border:1px solid var(--line);border-radius:10px;overflow:auto;white-space:pre;min-height:180px;max-height:55vh}
+.md-dialog .row{display:flex;justify-content:flex-end;align-items:center;flex-wrap:wrap;gap:.65rem;padding:.7rem 1rem 1rem}
+.confirm-modal{position:fixed;inset:0;z-index:90;display:flex;align-items:center;justify-content:center;padding:1rem;background:rgba(0,0,0,.45);backdrop-filter:blur(6px)}
+.confirm-modal[hidden]{display:none}
+.confirm-dialog{width:min(100%,380px);background:var(--panel);border:1px solid var(--line);border-radius:14px;box-shadow:0 20px 70px rgba(0,0,0,.28);padding:1rem 1rem .9rem}
+.confirm-dialog h3{margin:0 0 .3rem;font-size:1.05rem}
+.confirm-dialog p{margin:0;color:var(--mute);font-size:.9rem;line-height:1.5}
+.confirm-dialog .row{display:flex;justify-content:flex-end;align-items:center;flex-wrap:wrap;margin-top:1.25rem;gap:1rem;padding-top:.15rem}
+.grip{position:absolute;left:0;bottom:0;width:10px;height:10px;cursor:ns-resize;touch-action:none;z-index:2;border-bottom-left-radius:12px;background:linear-gradient(225deg,transparent 0 40%,var(--mute) 40% 46%,transparent 46% 60%,var(--mute) 60% 66%,transparent 66% 80%,var(--mute) 80% 86%,transparent 86%)}
+.grip:hover,.grip:focus-visible{outline:none;filter:brightness(1.4)}
+footer{text-align:center;padding:1rem 1rem 1.5rem;color:var(--mute);font-size:.85rem;line-height:1.6}
+footer a{color:var(--acc)}
+.note h1{font-size:2rem;line-height:1.2;font-weight:800;margin:.4em 0 .3em}
+.note h2{font-size:1.4rem;line-height:1.3;font-weight:600;color:var(--acc);margin:.8em 0 .3em}
+span.h1{font-size:1.8em;font-weight:800;line-height:1.2}span.h2{font-size:1.3em;font-weight:600;color:var(--acc)}
+span.h4{font-size:.85em;color:var(--mute);font-style:italic}span.h5{font-size:.75em;color:var(--mute)}
+.note p.h4{font-size:1rem;color:var(--mute);font-style:italic;margin:.15em 0 .65em}.note p.h5{font-size:.75rem;color:var(--mute);margin:.3em 0}
+.note p{margin:.6em 0}
+.note blockquote{margin:1em 0;padding:.4em 1em;border-left:4px solid var(--acc);color:var(--mute);font-style:italic;font-size:1.05rem}
+span.q{font-style:italic;color:var(--mute)}span.q:before{content:"\201C"}span.q:after{content:"\201D"}
+.note hr{border:0;border-top:1px solid var(--line);margin:1.4em 0}
+.note hr.dbl{border-top:4px double var(--mute)}
+.note table{border-collapse:collapse;margin:1em 0;min-width:50%}
+.note th,.note td{border:1px solid var(--line);padding:.4em .8em;text-align:left}
+.note th{background:var(--code)}
+.note ul,.note ol{margin:.6em 0;padding-left:1.5em}
+.note a{color:var(--acc);text-decoration:underline}
+.note ul.tree,.note ul.tree ul{list-style:none;padding-left:0;margin:.6em 0}
+.note ul.tree ul{margin:.1em 0 .1em .7em;padding-left:1em;border-left:1px solid var(--mute)}
+.note ul.tree li{position:relative;padding:.1em 0}
+.note ul.tree ul>li:before{content:"";position:absolute;left:-1em;top:.95em;width:.8em;border-top:1px solid var(--mute)}
+.tn{display:inline-block;padding:0 .55em;border:1px solid var(--line);border-radius:6px;background:var(--code)}
+.note .cont{display:block;border:1px solid var(--line);border-radius:10px;padding:.6em 1em;margin:.8em 0;background:var(--code)}
+.note .cont.btns{display:flex;flex-wrap:wrap;gap:.5em;border:0;background:transparent;padding:0}
+.note a.lbtn{display:inline-block;padding:.45em 1.1em;border-radius:8px;background:var(--acc);color:var(--accink);text-decoration:none;font-weight:600;font-size:.95rem}
+.memo{border:1px solid var(--line);border-radius:10px;padding:.7em;margin:.8em 0;background:var(--code)}
+.memo textarea{width:100%;min-height:5rem;border:1px solid var(--line);border-radius:8px;background:var(--panel);color:var(--ink);padding:.6rem;font:inherit;font-size:.95rem;resize:vertical}
+.memo-act{margin-top:.5em}.memo-st{min-height:1.2em;margin-top:.3em;font-size:.8rem;color:var(--acc)}
+
+/* Crypto workspace additions */
+.view-tabs{order:20;flex-basis:100%;width:100%;display:flex;gap:.4rem;align-items:center;margin-top:.15rem;padding-top:.5rem;border-top:1px solid var(--line)}
+.crypto-subtabs{display:flex;gap:.45rem;flex-wrap:wrap;margin-bottom:.8rem;padding-bottom:.55rem;border-bottom:1px solid var(--line)}
+.crypto-subtab{border-radius:8px;padding:.4rem .75rem;font-weight:700}
+.crypto-subtab.active{background:#1687F8;color:#fff;border-color:#1687F8}
+.crypto-card[hidden]{display:none}
+.crypto-import-hint{margin:.6rem 0 0;padding:.6rem .7rem;background:rgba(22,135,248,.08);border-left:4px solid #1687F8;border-radius:8px;font-size:.82rem}
+.crypto-empty-row{display:flex;justify-content:flex-end;gap:.6rem;flex-wrap:wrap;margin-bottom:.75rem}
+.crypto-empty-row button{width:auto}
+.zip-note{margin-top:.65rem;padding:.65rem .75rem;border:1px dashed var(--line);border-radius:8px;font-size:.8rem;color:var(--mute);background:var(--code)}
+.crypto-password-modal{position:fixed;inset:0;z-index:120;display:flex;align-items:center;justify-content:center;padding:1rem;background:rgba(0,0,0,.5);backdrop-filter:blur(7px)}
+.crypto-password-modal[hidden]{display:none}
+.crypto-password-dialog{width:min(100%,420px);background:var(--panel);border:1px solid var(--line);border-radius:14px;box-shadow:0 22px 80px rgba(0,0,0,.35);padding:1rem}
+.crypto-password-dialog h3{margin:0 0 .35rem;font-size:1.05rem}
+.crypto-password-dialog p{margin:0;color:var(--mute);font-size:.88rem;line-height:1.5}
+.crypto-password-dialog input{width:100%;margin-top:.8rem;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);padding:.6rem .7rem;font:inherit;outline:none}
+.crypto-password-dialog input:focus-visible{outline:2px solid #1687F8;outline-offset:2px}
+.crypto-password-actions{display:flex;justify-content:flex-end;gap:.9rem;flex-wrap:wrap;margin-top:1rem}
+.crypto-password-attempt{margin-top:.55rem;font-size:.78rem;color:var(--mute);min-height:1.2rem}
+.crypto-password-error{margin-top:.55rem;padding:.55rem .65rem;border-left:4px solid #D92D20;background:rgba(217,45,32,.08);border-radius:7px;font-size:.8rem;color:#D92D20}
+.crypto-password-recovery{margin-top:.75rem;padding:.7rem;background:var(--code);border-radius:9px;border:1px dashed var(--line);font-size:.8rem}
+.crypto-password-recovery button{margin-top:.55rem}
+@media(max-width:899px){.crypto-empty-row{justify-content:flex-start}}
+</style>
+</head>
+<body>
+<header>
+<h1><span class="app-title">.ef Text Prettifier</span><small>— an alternative to Markdown</small></h1>
+<div class="view-tabs" role="tablist" aria-label="App sections">
+<button id="tabEditor" class="tab-btn active" type="button" role="tab" aria-selected="true">Editor</button>
+<button id="tabCrypto" class="tab-btn" type="button" role="tab" aria-selected="false">Encrypt &amp; Decrypt</button>
+</div>
+<label class="btn p">Import .txt / .ef / .md<input id="file" type="file" accept=".txt,.ef,.md,.markdown,text/plain,text/markdown"></label>
+<button id="undo" class="history-btn" type="button" disabled title="Undo (Ctrl/Cmd+Z)">↶ Undo</button>
+<button id="redo" class="history-btn" type="button" disabled title="Redo (Ctrl/Cmd+Y)">↷ Redo</button>
+<button id="exp" class="p">Export .ef</button>
+<button id="expmd" class="p">Export .md</button>
+<button id="mdview">View .md</button>
+<button id="sample">Sample</button>
+<button id="clearText" class="danger" type="button">Clear Text</button>
+<div id="st" aria-live="polite"></div>
+</header>
+<div id="editorView"><div id="pre"></div>
+<div id="pe" hidden><div class="box">
+<h3 id="pn"></h3><p id="pd2"></p><ul id="pnotes"></ul>
+<div class="code-duo">
+ <div class="code-card"><label>.ef snippet</label><pre id="pt" class="syntax"></pre></div>
+ <div class="code-card"><label>Markdown conversion</label><pre id="pmd" class="syntax"></pre></div>
+</div>
+<div class="r note" id="pr"></div>
+<div class="row"><button class="p" id="pcp">Copy .ef</button><button id="pcmd">Copy Markdown</button><button id="pc">Close</button></div>
+</div></div>
+<main>
+<section class="pane"><h2>Editor (.ef)</h2><div class="editor-stack"><pre id="srcCode" class="syntax" aria-hidden="true"></pre><div id="selectionMeasure" aria-hidden="true"></div><textarea id="src" spellcheck="false" placeholder="Write or import .ef text here..."></textarea></div><div class="grip" role="separator" aria-label="Resize panels" tabindex="0" title="Drag down to make both panels taller"></div></section>
+<section class="pane"><h2>Preview</h2><div id="out" class="note"></div><div class="grip" role="separator" aria-label="Resize panels" tabindex="0" title="Drag down to make both panels taller"></div></section>
+</main>
+</div>
+<div id="setasPopover" class="setas-popover" hidden role="dialog" aria-label="Set selected text format">
+  <span class="setas-label">Set as</span>
+  <select id="setasSelect" aria-label="Format writing">
+    <option value="">Format writing…</option>
+  </select>
+  <div id="listTools" class="setas-extra" hidden>
+    <div class="setas-extra-title">List format</div>
+    <div class="list-tools">
+      <select id="listFormatSelect" aria-label="List format">
+        <option value="">Choose list format…</option>
+        <option value="unordered">Unordered list — |</option>
+        <option value="ordered">Ordered list — ;</option>
+      </select>
+      <button id="applyListFormat" class="p" type="button">Apply</button>
+    </div>
+  </div>
+  <div id="memoClipTools" class="setas-extra" hidden>
+    <div class="setas-extra-title">Memo clipper</div>
+    <div class="memo-clip">
+      <div class="memo-note">Long text / long keyword detected. Copy this ready-to-use .ef memo.</div>
+      <pre id="memoClipPreview" class="syntax"></pre>
+      <div class="memo-actions"><button id="applyMemoClip" class="p" type="button">Set as memo</button><button id="copyMemoClip" type="button">Copy memo</button></div>
+    </div>
+  </div>
+</div>
+<div id="clearModal" class="confirm-modal" hidden role="dialog" aria-modal="true" aria-labelledby="clearModalTitle">
+  <div class="confirm-dialog">
+    <h3 id="clearModalTitle">Clear editor text?</h3>
+    <p>This will remove all text from the current .ef editor.</p>
+    <div class="row"><button id="clearCancel" type="button">Cancel</button><button id="clearConfirm" class="danger" type="button">Clear Text</button></div>
+  </div>
+</div>
+<div id="mdmodal" class="md-modal" hidden role="dialog" aria-modal="true" aria-labelledby="mdmodaltitle">
+  <div class="md-dialog">
+    <h3 id="mdmodaltitle">Converted Markdown</h3>
+    <div class="md-sub">Live conversion of the current .ef editor content.</div>
+    <pre id="mdmodalout" class="syntax"></pre>
+    <div class="row"><button id="mdcopy" class="p">Copy Markdown</button><button id="mdmodalexport">Export .md</button><button id="mdmodalclose">Close</button></div>
+  </div>
+</div>
+
+<section id="cryptoView" class="crypto-view" aria-labelledby="cryptoTitle">
+  <div class="crypto-empty-row"><button id="cryptoEmptyWorkspace" class="danger" type="button">Empty Workspace</button></div>
+  <div class="crypto-subtabs" role="tablist" aria-label="Encrypt and decrypt workspace">
+    <button id="cryptoTabCreate" class="crypto-subtab active" type="button" role="tab" aria-selected="true">Encrypt / Export</button>
+    <button id="cryptoTabImport" class="crypto-subtab" type="button" role="tab" aria-selected="false">Import .ef file</button>
+  </div>
+  <div class="crypto-grid">
+    <div id="cryptoCreateCard" class="crypto-card">
+      <h2 id="cryptoTitle"><span>Encrypt &amp; Decrypt</span><span class="crypto-info"><button id="cryptoMainInfo" class="crypto-info-btn" type="button" aria-label="Encrypt and decrypt information" aria-expanded="false" title="Information">i</button><span id="cryptoMainInfoPopover" class="crypto-info-popover" hidden><div class="crypto-info-detail">
+<div class="crypto-info-block core"><div class="k"><span class="dot"></span>Core encryption</div><p><strong>AES-256-GCM</strong> encrypts the document locally. A fresh random <strong>256-bit CEK</strong> and <strong>12-byte IV</strong> are used per encryption.</p></div>
+<div class="crypto-info-block password"><div class="k"><span class="dot"></span>Password protection</div><p><strong>PBKDF2-SHA-256</strong> + random <strong>16-byte salt</strong> + <strong>300,000 iterations</strong> derives the key used to wrap the CEK.</p></div>
+<div class="crypto-info-block recovery"><div class="k"><span class="dot"></span>Persistent recovery</div><p>A separate random <strong>256-bit Recovery Key</strong> wraps the same CEK and can be reused for decrypt or password reset.</p></div>
+<div class="crypto-info-block file"><div class="k"><span class="dot"></span>Encrypted file</div><p><strong>EF-SECRET/1</strong> stores ciphertext plus required cryptographic metadata. The plaintext and password are not stored in readable form.</p></div>
+<div class="crypto-info-block runtime"><div class="k"><span class="dot"></span>Browser runtime</div><p>Encryption and decryption run locally through the browser's <strong>Web Crypto API</strong>; no server is required for the cryptographic operation.</p></div>
+<div class="crypto-info-block rule"><div class="k"><span class="dot"></span>Recovery rule</div><p>Losing both the password and Recovery Key means this app cannot recover the encrypted plaintext.</p></div>
+</div></span></span></h2>
+      <p>Create password-protected encrypted <code>.ef</code> files. A persistent Recovery Key can be reused to decrypt or reset the password later.</p>
+      <h3>Prepare encrypted file from editor</h3>
+      <button id="cryptoFromEditor" class="p" type="button">Import/Generate from editor text</button>
+      <div class="crypto-source">
+        <label for="cryptoSource">Text to encrypt</label>
+        <textarea id="cryptoSource" spellcheck="false" placeholder="Use “Import/Generate from editor text” to bring the current .ef text here..." aria-label="Text to encrypt"></textarea>
+        <div class="crypto-small">Normal <strong>Export .ef</strong> from the Editor remains a readable plaintext file. Only export from this tab creates the encrypted file.</div>
+      </div>
+      <label for="encPassword">Password</label>
+      <div class="password-field"><input id="encPassword" type="password" autocomplete="new-password" minlength="5" placeholder="Enter a password"><button class="password-eye" type="button" data-password-toggle="encPassword" aria-label="Show password" title="Show password"><i class="fa-solid fa-eye" aria-hidden="true"></i></button></div>
+      <label for="encPassword2">Confirm password</label>
+      <div class="password-field"><input id="encPassword2" type="password" autocomplete="new-password" minlength="5" placeholder="Repeat the password"><button class="password-eye" type="button" data-password-toggle="encPassword2" aria-label="Show password" title="Show password"><i class="fa-solid fa-eye" aria-hidden="true"></i></button></div>
+      <div class="crypto-small">Password must contain at least 5 characters.</div>
+      <div id="encryptPasswordState" class="crypto-password-state invalid" aria-live="polite"><span id="encPasswordCount" class="crypto-password-count">0 / 5</span><span id="encPassword2Count" class="crypto-password-count">0 / 5</span><span id="encryptPasswordStateMessage" class="state-message">Enter at least 5 characters and make both passwords match.</span></div>
+      <div class="crypto-actions">
+        <button id="encryptCurrent" class="p" type="button">Encrypt &amp; prepare files</button>
+        <button id="viewEncryptedText" class="p" type="button" disabled>View encrypted text</button>
+      </div>
+      <div id="recoveryBox" class="crypto-secret" hidden>
+        <strong>Persistent Recovery Key</strong>
+        <p>This key stays unchanged for this encrypted file and can be reused repeatedly for decrypt or password reset.</p>
+        <code id="recoveryKeyText"></code>
+        <div class="crypto-row tight"><button id="copyRecovery" class="p" type="button">Copy Recovery Key</button></div>
+      </div>
+      <div id="cryptoExportBox" class="crypto-export" hidden>
+        <button id="exportEncrypted" class="p" type="button" disabled>Export encrypted .ef</button>
+        <button id="exportCredentials" class="p" type="button" disabled>Export password &amp; key note</button>
+        <button id="exportZip" class="p" type="button" disabled>Export ZIP (2 files)</button>
+      </div>
+      <div class="zip-note"><strong>ZIP export:</strong> packages the encrypted <code>.ef</code> and the separate password &amp; persistent Recovery Key note together.</div>
+      <div class="crypto-file-note"><strong>Two-file export:</strong> the encrypted <code>.ef</code> contains only encrypted content and key-wrapping metadata. The separate note contains the password and persistent Recovery Key.</div>
+      <div class="crypto-warning"><strong>Important:</strong> the original password cannot be retrieved from the encrypted file. The persistent Recovery Key can be used repeatedly to decrypt or reset the password.</div>
+    </div>
+
+    <div id="cryptoImportCard" class="crypto-card" hidden>
+      <h2><span>Import .ef file</span><span class="crypto-info"><button id="cryptoImportInfo" class="crypto-info-btn" type="button" aria-label="Import .ef file information" aria-expanded="false" title="Information">i</button><span id="cryptoImportInfoPopover" class="crypto-info-popover" hidden><p>Import a saved <code>.ef</code> file. Encrypted files request a Password first; readable files can be sent directly to the Text Editor.</p></span></span></h2>
+      <div class="crypto-import-layout">
+        <div class="crypto-import-controls">
+          <label class="btn" for="secretFile">Import .ef file</label>
+          <input id="secretFile" class="crypto-file" type="file" accept=".ef,text/plain">
+          <div id="secretFileName" class="crypto-small">No .ef file loaded.</div>
+          <div class="crypto-import-hint"><strong>Password first:</strong> encrypted <code>EF-SECRET/1</code> files open through the password popup. Three failed attempts direct the user to the Reset Password workflow. Decrypted plaintext never enters the main editor automatically.</div>
+          <div class="crypto-divider"></div>
+          <h3>Recovery &amp; reset</h3>
+          <label for="decRecovery">Persistent Recovery Key</label>
+          <input id="decRecovery" type="text" autocomplete="off" spellcheck="false" placeholder="Paste persistent Recovery Key">
+          <div class="crypto-row tight"><button id="decryptRecovery" class="p" type="button">Decrypt to Read Only Mode</button></div>
+          <div class="crypto-divider"></div>
+          <h3>Reset password</h3>
+          <p>Use the same Recovery Key to create a new password. The Recovery Key itself stays unchanged and can be reused.</p>
+          <label for="resetPassword">New password</label>
+          <div class="password-field"><input id="resetPassword" type="password" autocomplete="new-password" minlength="5" placeholder="New file password"><button class="password-eye" type="button" data-password-toggle="resetPassword" aria-label="Show password" title="Show password"><i class="fa-solid fa-eye" aria-hidden="true"></i></button></div>
+          <label for="resetPassword2">Confirm new password</label>
+          <div class="password-field"><input id="resetPassword2" type="password" autocomplete="new-password" minlength="5" placeholder="Repeat the new password"><button class="password-eye" type="button" data-password-toggle="resetPassword2" aria-label="Show password" title="Show password"><i class="fa-solid fa-eye" aria-hidden="true"></i></button></div>
+          <div class="crypto-small">Password must contain at least 5 characters.</div>
+          <div class="crypto-row tight"><button id="resetPasswordBtn" class="p" type="button">Reset Password with Recovery Key</button></div>
+          <div id="cryptoStatus" class="crypto-status" aria-live="polite"></div>
+        </div>
+        <aside class="crypto-readonly" aria-labelledby="cryptoReadOnlyTitle">
+          <h3 id="cryptoReadOnlyTitle">Read Only Mode</h3>
+          <p>View the decrypted document here first. It remains outside the main editor until you choose to release the encryption.</p>
+          <textarea id="cryptoReadOnlyText" readonly spellcheck="false" placeholder="Decrypt the imported encrypted .ef file to view its contents here..." aria-label="Decrypted .ef content in read only mode"></textarea>
+          <div id="cryptoReadOnlyStatus" class="crypto-readonly-status" aria-live="polite">No decrypted document available.</div>
+          <div class="crypto-readonly-actions">
+            <button id="cryptoReleaseEditor" class="p" type="button" disabled>Release Encryption | add to text editor</button>
+          </div>
+        </aside>
+      </div>
+    </div>
+  </div>
+</section>
+<div id="cryptoAlreadyDecryptedModal" class="crypto-password-modal" hidden role="dialog" aria-modal="true" aria-labelledby="cryptoAlreadyDecryptedTitle">
+  <div class="crypto-password-dialog">
+    <h3 id="cryptoAlreadyDecryptedTitle">Oops! Already Decrypted</h3>
+    <p id="cryptoAlreadyDecryptedFile">This file is a readable .ef document and does not require a password.</p>
+    <p>Go to text editor to directly view &amp; edit.</p>
+    <div class="crypto-password-actions">
+      <button id="cryptoAlreadyDecryptedCancel" type="button">Cancel</button>
+      <button id="cryptoAlreadyDecryptedView" class="p" type="button">View in Text Editor</button>
+    </div>
+  </div>
+</div>
+<div id="cryptoPasswordModal" class="crypto-password-modal" hidden role="dialog" aria-modal="true" aria-labelledby="cryptoPasswordTitle">
+  <div class="crypto-password-dialog">
+    <h3 id="cryptoPasswordTitle">Enter password to unlock</h3>
+    <p id="cryptoPasswordFile">Encrypted .ef file</p>
+    <div class="password-field"><input id="cryptoPasswordInput" type="password" autocomplete="current-password" placeholder="File password"><button class="password-eye" type="button" data-password-toggle="cryptoPasswordInput" aria-label="Show password" title="Show password"><i class="fa-solid fa-eye" aria-hidden="true"></i></button></div>
+    <div id="cryptoPasswordAttempt" class="crypto-password-attempt"></div>
+    <div id="cryptoPasswordError" class="crypto-password-error" hidden></div>
+    <div id="cryptoPasswordRecovery" class="crypto-password-recovery" hidden>Three password attempts failed. Use the persistent Recovery Key to reset the password.</div>
+    <div class="crypto-password-actions">
+      <button id="cryptoPasswordCancel" type="button">Cancel</button>
+      <button id="cryptoPasswordReset" class="danger" type="button" hidden>Go to Reset Password</button>
+      <button id="cryptoPasswordUnlock" class="p" type="button">Unlock</button>
+    </div>
+  </div>
+</div>
+<div id="cryptoEncryptedTextModal" class="crypto-encrypted-modal" hidden role="dialog" aria-modal="true" aria-labelledby="cryptoEncryptedTextTitle">
+  <div class="crypto-encrypted-dialog">
+    <h3 id="cryptoEncryptedTextTitle">Encrypted text</h3>
+    <p>Preview of the exact encrypted <code>EF-SECRET/1</code> text that will be exported. Passwords and Recovery Keys are not included here.</p>
+    <pre id="cryptoEncryptedTextOut" aria-label="Encrypted file text preview"></pre>
+    <div class="row"><button id="cryptoEncryptedCopy" class="p" type="button">Copy encrypted text</button><button id="cryptoEncryptedClose" type="button">Close</button></div>
+  </div>
+</div>
+<div id="cryptoEmptyModal" class="confirm-modal" hidden role="dialog" aria-modal="true" aria-labelledby="cryptoEmptyTitle">
+  <div class="confirm-dialog">
+    <h3 id="cryptoEmptyTitle">Empty Encrypt &amp; Decrypt workspace?</h3>
+    <p>This clears the imported file, encrypted package, password fields, Recovery Key, and workspace text. Your main Editor text stays unchanged.</p>
+    <div class="row"><button id="cryptoEmptyCancel" type="button">Cancel</button><button id="cryptoEmptyConfirm" class="danger" type="button">Empty Workspace</button></div>
+  </div>
+</div>
+<footer><div>Created by <a href="https://www.instagram.com/ervinf.dsg" target="_blank" rel="noopener noreferrer">@ervinf.dsg</a></div><div>©2026 Ervin Faristiyanto. All rights reserved.</div></footer>
+<script>
+(function(){
+var OPEN=/^\((b|i|u|-|"|h[1-5]|Abcd|Abc|ABC|abc)\)_'/;
+function esc(s){return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
+function openAt(s,i){return OPEN.exec(s.slice(i,i+8));}
+function isWordChar(ch){return !!ch&&/[A-Za-z0-9]/.test(ch);}
+/* Neutralize blocks use #text#. Their contents are opaque to every .ef parser. */
+var activeNeutralStore=[];
+function findNeutralClose(s,st){var i=st;while(i<s.length){if(s[i]==="#"&&s[i-1]!=="\\")return i;i++;}return -1;}
+function protectNeutral(s){var store=[],out="",i=0;while(i<s.length){if(s[i]==="#"&&s[i-1]!=="\\"){var c=findNeutralClose(s,i+1);if(c>=0){store.push(s.slice(i+1,c));out+="\u0004"+(store.length-1)+"\u0004";i=c+1;continue;}}out+=s[i++];}return{text:out,store:store};}
+function restoreNeutralText(s){return String(s||"").replace(/\u0004(\d+)\u0004/g,function(_,n){return activeNeutralStore[+n]||"";});}
+/* A quote inside a word (it's) is literal; other quotes close one nested .ef wrapper level. */
+function findClose(s,st){
+ var depth=1,i=st,m;
+ while(i<s.length){
+  if(s[i]==="("&&(m=openAt(s,i))){depth++;i+=m[0].length;continue;}
+  if(s[i]==="'"){
+   if(isWordChar(s[i-1])&&isWordChar(s[i+1])){i++;continue;}
+   depth--;
+   if(depth===0)return i;
+  }
+  i++;
+ }
+ return -1;
+}
+/* Returns the complete wrapper span so all parser paths use the same nesting rules. */
+function readEfWrap(s,pos){
+ var m=openAt(s,pos);
+ if(!m)return null;
+ var close=findClose(s,pos+m[0].length);
+ return close<0?null:{k:m[1],start:pos,end:close,close:close+1,text:s.slice(pos+m[0].length,close)};
+}
+function wrap(k,x){
+ if(k==="ABC"||k==="abc"||k==="Abc"||k==="Abcd")return x;
+ if(k==="b")return"<strong>"+x+"</strong>";
+ if(k==="i")return"<em>"+x+"</em>";
+ if(k==="u")return"<u>"+x+"</u>";
+ if(k==="-")return"<s>"+x+"</s>";
+ if(k==='"')return'<span class="q">'+x+"</span>";
+ return'<span class="'+k+'">'+x+"</span>";}
+var links=[];
+var CM={ABC:1,abc:1,Abc:1,Abcd:1};
+function mk(m){return{m:m,cap:true,pw:false};}
+function conv(t,c){if(!c)return t;
+ if(c.m==="ABC")return t.toUpperCase();
+ if(c.m==="abc")return t.toLowerCase();
+ var o="",ch,L,k;
+ for(k=0;k<t.length;k++){ch=t[k];L=/\p{L}/u.test(ch);
+  if(c.m==="Abc"){if(L){o+=c.pw?ch.toLowerCase():ch.toUpperCase();c.pw=true;}else{o+=ch;c.pw=/[0-9']/.test(ch);}}
+  else{if(L){o+=c.cap?ch.toUpperCase():ch.toLowerCase();c.cap=false;}else{o+=ch;if(/[.!?]/.test(ch)&&(k+1>=t.length||/\s/.test(t[k+1])))c.cap=true;}}}
+ return o;}
+function parseInline(s,cm){
+ var out="",i=0,j,w;
+ while(true){
+  j=s.indexOf("(",i);
+  while(j>=0&&!openAt(s,j))j=s.indexOf("(",j+1);
+  if(j<0){out+=esc(conv(s.slice(i),cm));break;}
+  out+=esc(conv(s.slice(i,j),cm));
+  w=readEfWrap(s,j);
+  if(!w){out+=esc(conv(s.slice(j,j+1),cm));i=j+1;continue;}
+  out+=wrap(w.k,parseInline(w.text,CM[w.k]?mk(w.k):cm));
+  i=w.close;
+ }
+ return out;
+}
+
+var mv=Object.create(null);
+function linkA(l,cls){var u=/^(https?:|mailto:|#)/i.test(l.u)?l.u:"#";return"<a"+(cls?' class="'+cls+'"':"")+' href="'+esc(u).replace(/"/g,"&quot;")+'" target="_blank" rel="noopener noreferrer">'+parseInline(l.t).replace(/\u0001\d+\u0001/g,"")+"</a>";}
+function inline(s){return parseInline(s).replace(/\u0001(\d+)\u0001/g,function(_,n){return linkA(links[+n]);}).replace(/\u0004(\d+)\u0004/g,function(_,n){return esc(activeNeutralStore[+n]||"");});}
+function memoHtml(c){
+ c=c.replace(/\u0001(\d+)\u0001/g,function(_,n){var l=links[+n];return"<("+l.u+")_("+l.t+")>";});
+ c=restoreNeutralText(c);
+ var v=(c in mv)?mv[c]:c;
+ return'<div class="memo"><textarea class="memo-ta" rows="4" data-src="'+esc(c).replace(/"/g,"&quot;")+'" placeholder="Write a short memo...">\n'+esc(v)+'</textarea><div class="memo-act"><button class="memo-copy" type="button">Copy</button></div><div class="memo-st"></div></div>';}
+function blockMark(t){
+ var w=readEfWrap(t,0);
+ if(!w||!/^(h[1-5]|")$/.test(w.k)||w.end!==t.length-1)return null;
+ return {k:w.k,x:w.text};
+}
+function parseTree(s){
+ var i=0;
+ function ws(){while(i<s.length&&/\s/.test(s[i]))i++;}
+ function name(){ws();var st;
+  if(s[i]==="("&&!openAt(s,i)){var d=1;st=++i;while(i<s.length&&d){if(s[i]==="(")d++;else if(s[i]===")")d--;i++;}return s.slice(st,d?i:i-1).trim();}
+  st=i;
+  while(i<s.length&&",)>".indexOf(s[i])<0){var m=s[i]==="("&&openAt(s,i);if(m){var w=readEfWrap(s,i);i=w?w.close:i+m[0].length;}else i++;}
+  return s.slice(st,i).trim();}
+ function node(){var n={t:name(),k:[]};ws();
+  if(s[i]===">"){i++;ws();if(s[i]==="("){i++;n.k=list();ws();if(s[i]===")")i++;}}
+  return n;}
+ function list(){var a=[];while(i<s.length){a.push(node());ws();if(s[i]===","){i++;continue;}break;}return a;}
+ return list();}
+function treeHtml(a,root){
+ return"<ul"+(root?' class="tree"':"")+">"+a.map(function(n){return'<li><span class="tn">'+inline(n.t)+"</span>"+(n.k.length?treeHtml(n.k):"")+"</li>";}).join("")+"</ul>";}
+function render(src){
+ links=[];
+ var np=protectNeutral(String(src||"").replace(/\r/g,""));
+ activeNeutralStore=np.store;src=np.text;
+ src=src.replace(/<\(([^()\s]+)\)_\(([\s\S]*?)\)>/g,function(_,u,t){links.push({u:u,t:t});return"\u0001"+(links.length-1)+"\u0001";});
+ var L=src.split("\n"),h="",para=[],i=0,t,m;
+ function flush(){if(para.length){h+="<p>"+para.map(inline).join("<br>")+"</p>";para=[];}}
+ while(i<L.length){
+  t=L[i].trim();
+  if(!t){flush();i++;continue;}
+  if(/^---2x$/i.test(t)){flush();h+='<hr class="dbl">';i++;continue;}
+  if(/^-{3,}$/.test(t)){flush();h+="<hr>";i++;continue;}
+  if(t==="***"){flush();i++;var rows=[];
+   while(i<L.length&&L[i].trim()!=="***"){var r=L[i].trim();
+    if(r){r=r.replace(/^\|/,"").replace(/\|$/,"");rows.push(r.split("|").map(function(x){return x.trim();}));}i++;}
+   i++;
+   if(rows.length){h+="<table><thead><tr>"+rows[0].map(function(x){return"<th>"+inline(x)+"</th>";}).join("")+"</tr></thead><tbody>"+
+    rows.slice(1).map(function(r){return"<tr>"+r.map(function(x){return"<td>"+inline(x)+"</td>";}).join("")+"</tr>";}).join("")+"</tbody></table>";}
+   continue;}
+  if(t.slice(0,3)==="*!*"){var mb=t,m0=i,mm;
+   while(!/'\s*\*\s*$/.test(mb)&&i+1<L.length){i++;mb+="\n"+L[i];}
+   mm=/^\*!\*\s*'([\s\S]*)'\s*\*$/.exec(mb.trim());
+   if(mm){flush();i++;h+=memoHtml(mm[1]);continue;}
+   i=m0;}
+  if(t[0]==="["){var buf=t,dp=0,k,s0=i;
+   function cnt(x){for(k=0;k<x.length;k++){if(x[k]==="[")dp++;else if(x[k]==="]")dp--;}}
+   cnt(t);
+   while(dp>0&&i+1<L.length){i++;buf+=" "+L[i].trim();cnt(L[i]);}
+   if(dp===0&&/\]$/.test(buf)){flush();i++;var inr=buf.slice(1,-1);
+    if(/>\s*\(/.test(inr)){h+=treeHtml(parseTree(inr),true);}
+    else if(!inr.replace(/\u0001\d+\u0001/g,"").trim()&&/\u0001/.test(inr)){h+='<div class="cont btns">'+inr.match(/\u0001\d+\u0001/g).map(function(p){return linkA(links[+p.replace(/\u0001/g,"")],"lbtn");}).join("")+"</div>";}
+    else{h+='<div class="cont">'+inline(inr.trim())+"</div>";}
+    continue;}
+   i=s0;}
+  if(t[0]==="<"&&!/[A-Za-z\/!(]/.test(t[1]||"")){flush();var b2=t;
+   while(!/>$/.test(b2)&&i+1<L.length){i++;b2+=" "+L[i].trim();}
+   i++;
+   var inner=b2.replace(/^<\s*/,"").replace(/\s*>$/,""),ord=inner.indexOf("|")<0&&inner.indexOf(";")>=0,tag=ord?"ol":"ul";
+   h+="<"+tag+">"+inner.split(ord?";":"|").map(function(x){x=x.trim();return x?"<li>"+inline(x)+"</li>":"";}).join("")+"</"+tag+">";
+   continue;}
+  m=blockMark(t);
+  if(m){flush();var x=inline(m.x);
+   if(m.k==="h1")h+="<h1>"+x+"</h1>";
+   else if(m.k==="h2")h+="<h2>"+x+"</h2>";
+   else if(m.k==='"')h+="<blockquote>"+x+"</blockquote>";
+   else h+='<p class="'+m.k+'">'+x+"</p>";
+   i++;continue;}
+  para.push(t);i++;}
+ flush();
+ return h;}
+
+/* ---------- Markdown bridge (.ef <-> .md) ---------- */
+function mdEscText(s){
+  return String(s).replace(/\\/g,"\\\\").replace(/([`*_{}\[\]])/g,"\\$1");
+}
+function mdInline(s){
+  var stash=[],sid=0;
+  s=String(s||"").replace(/<\(([^()\s]+)\)_\(([\s\S]*?)\)>/g,function(_,u,t){
+    stash.push({u:u,t:t});return "\u0003"+(sid++)+"\u0003";
+  });
+  var out="",i=0,j,m,c,sub;
+  while(true){
+    j=s.indexOf("(",i);
+    while(j>=0&&!openAt(s,j))j=s.indexOf("(",j+1);
+    if(j<0){out+=mdEscText(s.slice(i));break;}
+    out+=mdEscText(s.slice(i,j));
+    var w=readEfWrap(s,j);
+    if(!w){out+=mdEscText(s.slice(j,j+1));i=j+1;continue;}
+    m=[null,w.k];c=w.end;
+    sub=w.text;
+    if(m[1]==="b")out+="<strong>"+mdInline(sub)+"</strong>";
+    else if(m[1]==="i")out+="<em>"+mdInline(sub)+"</em>";
+    else if(m[1]==="u")out+="<u>"+mdInline(sub)+"</u>";
+    else if(m[1]==="-")out+="<del>"+mdInline(sub)+"</del>";
+    else if(m[1]==='"')out+="<q>"+mdInline(sub)+"</q>";
+    else if(CM[m[1]])out+='<span data-ef-case="'+m[1]+'">'+mdInline(sub)+"</span>";
+    else out+='<span data-ef-style="'+m[1]+'">'+mdInline(sub)+"</span>";
+    i=c+1;
+  }
+  return out.replace(/\u0003(\d+)\u0003/g,function(_,n){
+    var l=stash[+n];
+    return "["+mdInline(l.t)+"]("+l.u+")";
+  }).replace(/\u0004(\d+)\u0004/g,function(_,n){
+    return '<span data-ef-neutralize>'+mdEscText(activeNeutralStore[+n]||"")+'</span>';
+  });
+}
+function mdTreeNode(n,depth,a){
+  a.push(Array(depth+1).join("  ")+"- "+mdInline(n.t));
+  n.k.forEach(function(x){mdTreeNode(x,depth+1,a);});
+}
+function efTreeToMd(inr){
+  var nodes=parseTree(inr),a=["<!-- ef:tree -->"];
+  nodes.forEach(function(n){mdTreeNode(n,0,a);});
+  a.push("<!-- /ef:tree -->");
+  return a.join("\n");
+}
+function efToMd(srcText){
+  var np=protectNeutral(String(srcText||"").replace(/\r/g,""));
+  activeNeutralStore=np.store;srcText=np.text;
+  var L=srcText.split("\n"),out=[],i=0,t,m;
+  while(i<L.length){
+    t=L[i].trim();
+    if(!t){out.push("");i++;continue;}
+    if(/^---2x$/i.test(t)){out.push('<hr data-ef="double">');i++;continue;}
+    if(/^-{3,}$/.test(t)){out.push("---");i++;continue;}
+    if(t==="***"){
+      var rows=[],r;i++;
+      while(i<L.length&&L[i].trim()!=="***"){
+        r=L[i].trim();
+        if(r){
+          r=r.replace(/^\|/,"").replace(/\|$/,"");
+          rows.push(r.split("|").map(function(x){return mdInline(x.trim());}));
+        }
+        i++;
+      }
+      if(i<L.length&&L[i].trim()==="***")i++;
+      if(rows.length){
+        out.push("| "+rows[0].join(" | ")+" |");
+        out.push("| "+rows[0].map(function(){return "---";}).join(" | ")+" |");
+        rows.slice(1).forEach(function(row){
+          var rr=row.slice(0,rows[0].length);
+          while(rr.length<rows[0].length)rr.push("");
+          out.push("| "+rr.join(" | ")+" |");
+        });
+      }
+      continue;
+    }
+    if(t.slice(0,3)==="*!*"){
+      var mb=t,m0=i,mm;
+      while(!/'\s*\*\s*$/.test(mb)&&i+1<L.length){i++;mb+="\n"+L[i];}
+      mm=/^\*!\*\s*'([\s\S]*)'\s*\*$/.exec(mb.trim());
+      if(mm){
+        out.push('<div data-ef-memo>');
+        out.push(esc(mm[1]).replace(/\n/g,"<br>"));
+        out.push("</div>","");i++;continue;
+      }
+      i=m0;
+    }
+    if(t[0]==="["){
+      var buf=t,dp=0,k,s0=i;
+      function cntMd(x){for(k=0;k<x.length;k++){if(x[k]==="[")dp++;else if(x[k]==="]")dp--;}}
+      cntMd(t);
+      while(dp>0&&i+1<L.length){i++;buf+=" "+L[i].trim();cntMd(L[i]);}
+      if(dp===0&&/\]$/.test(buf)){
+        var inr=buf.slice(1,-1);
+        if(/>\s*\(/.test(inr)){
+          out.push(efTreeToMd(inr),"");
+        }else if(/^\s*<\(([^()\s]+)\)_\(([^)]*)\)>/.test(inr)){
+          var buttonLinks=[],rx=/<\(([^()\s]+)\)_\(([^)]*)\)>/g,lm;
+          while((lm=rx.exec(inr)))buttonLinks.push("["+mdInline(lm[2])+"]("+lm[1]+")");
+          if(buttonLinks.length===1&&buttonLinks.join("")===inr.trim()){
+            out.push('<div data-ef-container="buttons">');
+            out.push(buttonLinks[0]);
+            out.push("</div>","");
+          }else{
+            out.push("<div data-ef-container>",mdInline(inr.trim()),"</div>","");
+          }
+        }else if(!inr.replace(/\u0001\d+\u0001/g,"").trim()&&/\u0001/.test(inr)){
+          out.push('<div data-ef-container="buttons">');
+          inr.replace(/\u0001(\d+)\u0001/g,function(_,n){
+            var l=links[+n];
+            out.push("[" + mdInline(l.t) + "](" + l.u + ")");
+            return "";
+          });
+          out.push("</div>","");
+        }else{
+          out.push("<div data-ef-container>",mdInline(inr.trim()),"</div>","");
+        }
+        i++;continue;
+      }
+      i=s0;
+    }
+    if(t[0]==="<"&&!/[A-Za-z\/!(]/.test(t[1]||"")){
+      var b2=t;
+      while(!/>$/.test(b2)&&i+1<L.length){i++;b2+=" "+L[i].trim();}
+      var inner=b2.replace(/^<\s*/,"").replace(/\s*>$/,"");
+      var ord=inner.indexOf("|")<0&&inner.indexOf(";")>=0;
+      var parts=inner.split(ord?";":"|").map(function(x){return x.trim();}).filter(Boolean);
+      parts.forEach(function(x,ix){out.push(ord?(ix+1)+". "+mdInline(x):"- "+mdInline(x));});
+      out.push("");i++;continue;
+    }
+    m=blockMark(t);
+    if(m){
+      var bx=mdInline(m.x);
+      if(m.k==="h1")out.push("# "+bx);
+      else if(m.k==="h2")out.push("## "+bx);
+      else if(m.k==='"')out.push("> "+bx);
+      else {out.push("<!-- ef:"+m.k+" -->");out.push(bx);}
+      out.push("");i++;continue;
+    }
+    out.push(mdInline(t));i++;
+  }
+  while(out.length&&!out[out.length-1])out.pop();
+  return out.join("\n")+"\n";
+}
+
+function mdUnescape(s){return String(s).replace(/\\([\\`*_\[\]{}])/g,"$1");}
+function mdHtmlDecode(s){var ta=document.createElement("textarea");ta.innerHTML=String(s||"");return ta.value;}
+function mdInlineToEf(s){
+  s=String(s||"");var stash=[];
+  function hold(x){var id=stash.length;stash.push(x);return "\u0002"+id+"\u0002";}
+  s=s.replace(/<span\s+data-ef-neutralize>([\s\S]*?)<\/span>/gi,function(_,x){return hold("#"+mdUnescape(mdHtmlDecode(x))+"#");});
+  s=s.replace(/<span\s+data-ef-case="(ABC|abc|Abc|Abcd)">([\s\S]*?)<\/span>/gi,function(_,k,x){return hold("("+k+")_'"+mdInlineToEf(x)+"'");});
+  s=s.replace(/<span\s+data-ef-style="(h[1-5])">([\s\S]*?)<\/span>/gi,function(_,k,x){return hold("("+k+")_'"+mdInlineToEf(x)+"'");});
+  s=s.replace(/<q>([\s\S]*?)<\/q>/gi,function(_,x){return hold('(")_\''+mdInlineToEf(x)+"'");});
+  s=s.replace(/<u>([\s\S]*?)<\/u>/gi,function(_,x){return hold("(u)_'"+mdInlineToEf(x)+"'");});
+  s=s.replace(/<del>([\s\S]*?)<\/del>/gi,function(_,x){return hold("(-)_'"+mdInlineToEf(x)+"'");});
+  s=s.replace(/<s>([\s\S]*?)<\/s>/gi,function(_,x){return hold("(-)_'"+mdInlineToEf(x)+"'");});
+  s=s.replace(/<strong>([\s\S]*?)<\/strong>/gi,function(_,x){return hold("(b)_\'"+mdInlineToEf(x)+"\'");});
+  s=s.replace(/<em>([\s\S]*?)<\/em>/gi,function(_,x){return hold("(i)_\'"+mdInlineToEf(x)+"\'");});
+  s=s.replace(/\[([^\]]+)\]\((https?:\/\/[^)\s]+|mailto:[^)\s]+|#[^)\s]+)\)/gi,function(_,x,u){return hold("<("+u+")_("+
+    mdInlineToEf(x)+")>");});
+  s=s.replace(/(\*\*|__)([\s\S]*?)\1/g,function(_,mark,x){return hold("(b)_'"+mdInlineToEf(x)+"'");});
+  s=s.replace(/~~([\s\S]*?)~~/g,function(_,x){return hold("(-)_'"+mdInlineToEf(x)+"'");});
+  s=s.replace(/(?<![\w*])\*([^*\n]+)\*(?!\*)/g,function(_,x){return hold("(i)_'"+mdInlineToEf(x)+"'");});
+  s=s.replace(/(?<![\w_])_([^_\n]+)_(?!\w)/g,function(_,x){return hold("(i)_'"+mdInlineToEf(x)+"'");});
+  s=s.replace(/`([^`\n]+)`/g,function(_,x){return hold(mdUnescape(x));});
+  s=s.replace(/\\([\\`*_\[\]{}])/g,"$1");
+  s=mdUnescape(s).replace(/\u0002(\d+)\u0002/g,function(_,n){return stash[+n];});
+  return s;
+}
+function parseMdTable(lines){
+  if(lines.length<2)return null;
+  function cells(x){return x.trim().replace(/^\|/,"").replace(/\|$/,"").split("|").map(function(y){return y.trim();});}
+  var head=cells(lines[0]),sep=cells(lines[1]);
+  if(!sep.length||sep.length!==head.length||!sep.every(function(x){return /^:?-{3,}:?$/.test(x);}))return null;
+  var rows=[head].concat(lines.slice(2).map(cells));
+  rows=rows.map(function(row){var r=row.slice(0,head.length);while(r.length<head.length)r.push("");return r.map(mdInlineToEf);});
+  return "***\n"+rows.map(function(r){return "| "+r.join(" | ")+" |";}).join("\n")+"\n***";
+}
+function mdListToEf(lines){
+  var ordered=/^\s*\d+\.\s+/.test(lines[0]),rootIndent=null,items=[],ok=true;
+  lines.forEach(function(line){
+    var m=/^(\s*)(?:[-*+]\s+|\d+\.\s+)/.exec(line);
+    if(!m){ok=false;return;}
+    var indent=m[1].replace(/\t/g,"  ").length;
+    if(rootIndent===null)rootIndent=indent;
+    if(indent!==rootIndent)ok=false;
+    items.push(mdInlineToEf(line.slice(m[0].length).trim()));
+  });
+  return ok ? "< "+items.join(ordered?" ; ":" | ")+" >" : null;
+}
+function mdTreeToEf(lines){
+  var roots=[],stack=[];
+  lines.forEach(function(line){
+    var m=/^(\s*)(?:[-*+]\s+|\d+\.\s+)(.*)$/.exec(line);if(!m)return;
+    var indent=m[1].replace(/\t/g,"  ").length,n={t:mdInlineToEf(m[2]),k:[]};
+    while(stack.length&&indent<=stack[stack.length-1].indent)stack.pop();
+    if(stack.length)stack[stack.length-1].node.k.push(n);else roots.push(n);
+    stack.push({indent:indent,node:n});
+  });
+  function name(n){return n.k.length?"("+n.t+")>("+n.k.map(name).join(", ")+")":n.t;}
+  return "["+roots.map(name).join(", ")+"]";
+}
+function mdToEf(md){
+  var raw=String(md||"").replace(/\r/g,"").split("\n"),out=[],i=0;
+  while(i<raw.length){
+    var t=raw[i].trim();
+    if(!t){out.push("");i++;continue;}
+    var sm=/^<!--\s*ef:(h[3-5])\s*-->$/i.exec(t);
+    if(sm){
+      var k0=sm[1];i++;while(i<raw.length&&!raw[i].trim())i++;
+      if(i<raw.length)out.push("("+k0+")_'"+mdInlineToEf(raw[i].trim())+"'", "");
+      else out.push("("+k0+")_''");
+      i++;continue;
+    }
+    if(/^<!--\s*ef:tree\s*-->$/i.test(t)){
+      var tl=[];i++;
+      while(i<raw.length&&!/^<!--\s*\/ef:tree\s*-->$/i.test(raw[i].trim())){if(raw[i].trim())tl.push(raw[i]);i++;}
+      if(i<raw.length)i++;out.push(mdTreeToEf(tl),"");continue;
+    }
+    if(/^<hr\s+data-ef=["']double["']\s*\/?>$/i.test(t)){out.push("---2x");i++;continue;}
+    if(/^<div\s+data-ef-memo\s*>$/i.test(t)){
+      var mm=[];i++;
+      while(i<raw.length&&!/^<\/div>\s*$/i.test(raw[i].trim())){mm.push(raw[i]);i++;}
+      if(i<raw.length)i++;
+      var memo=mm.join("\n").replace(/<br\s*\/?>/gi,"\n").replace(/&lt;/g,"<").replace(/&gt;/g,">").replace(/&amp;/g,"&");
+      out.push("*!* '"+memo+"' *","");continue;
+    }
+    if(/^<div\s+data-ef-container(?:="buttons")?\s*>$/i.test(t)){
+      var buttons=/buttons/i.test(t),body=[];i++;
+      while(i<raw.length&&!/^<\/div>\s*$/i.test(raw[i].trim())){if(raw[i].trim())body.push(raw[i].trim());i++;}
+      if(i<raw.length)i++;
+      if(buttons){
+        var bl=body.map(function(x){
+          var lm=/^\[([^\]]+)\]\((https?:\/\/[^)\s]+|mailto:[^)\s]+|#[^)\s]+)\)$/.exec(x);
+          return lm?"<("+lm[2]+")_("+
+            mdInlineToEf(lm[1])+")>":mdInlineToEf(x);
+        });
+        out.push("[ "+bl.join(" ")+" ]","");
+      }else out.push("[ "+mdInlineToEf(body.join(" "))+" ]","");
+      continue;
+    }
+    if(t==="|"){
+      i++;continue;
+    }
+    if(/^\|/.test(t)&&i+1<raw.length&&/^\s*\|?[\s]*:?-{3,}/.test(raw[i+1].trim())){
+      var tbl=[raw[i]];i++;
+      while(i<raw.length&&/^\s*\|/.test(raw[i].trim())){tbl.push(raw[i]);i++;}
+      var parsed=parseMdTable(tbl);
+      if(parsed){out.push(parsed,"");continue;}
+      i-=tbl.length; // fallback
+    }
+    var hm=/^(#{1,2})\s+(.+?)\s*$/.exec(t);
+    if(hm){out.push("("+(hm[1].length===1?"h1":"h2")+")_'"+mdInlineToEf(hm[2])+"'","");i++;continue;}
+    if(/^>\s?/.test(t)){
+      var q=[];while(i<raw.length&&/^>\s?/.test(raw[i].trim())){q.push(raw[i].trim().replace(/^>\s?/,""));i++;}
+      out.push('(")_\''+mdInlineToEf(q.join("\n"))+"'","");continue;
+    }
+    if(/^[-*+]\s+/.test(t)||/^\d+\.\s+/.test(t)){
+      var ls=[];while(i<raw.length&&/^\s*(?:[-*+]\s+|\d+\.\s+)/.test(raw[i])){ls.push(raw[i]);i++;}
+      if(ls.some(function(x){return /^\s+/.test(x);})){out.push(mdTreeToEf(ls));}
+      else {var le=mdListToEf(ls);out.push(le||ls.map(function(x){return mdInlineToEf(x.replace(/^\s*(?:[-*+]\s+|\d+\.\s+)/,""));}).join("\n"));}
+      out.push("");continue;
+    }
+    var para=[t];i++;
+    while(i<raw.length&&raw[i].trim()&&!/^#{1,6}\s+/.test(raw[i].trim())&&!/^>\s?/.test(raw[i].trim())&&!/^\s*(?:[-*+]\s+|\d+\.\s+)/.test(raw[i])&&raw[i].trim()!=="***"&&!/^<hr\s/i.test(raw[i].trim())&&!/^<!--\s*ef:/i.test(raw[i].trim())&&!/^<div\s+data-ef-/i.test(raw[i].trim())){
+      para.push(raw[i].trim());i++;
+    }
+    out.push(mdInlineToEf(para.join("\n")),"");
+  }
+  while(out.length&&!out[out.length-1])out.pop();
+  return out.join("\n")+"\n";
+}
+
+function hiEf(s){
+ s=String(s||"");
+ var neutralRanges=[],nrScan=0;
+ while(nrScan<s.length){if(s[nrScan]==="#"&&s[nrScan-1]!=="\\"){var nrClose=findNeutralClose(s,nrScan+1);if(nrClose>=0){neutralRanges.push({a:nrScan,b:nrClose});nrScan=nrClose+1;continue;}}nrScan++;}
+ function neutralRangeAt(pos){for(var q=0;q<neutralRanges.length;q++){var r=neutralRanges[q];if(pos<r.a)return null;if(pos<=r.b)return r;}return null;}
+ var lines=s.split("\n"),out=[],inTable=false,inList=false,globalBase=0;
+ function span(cls,v){return v?'<span class="'+cls+'">'+esc(v)+"</span>":"";}
+ function wordChar(ch){return !!ch&&/[A-Za-z0-9]/.test(ch);}
+ function renderLine(line,globalStart){
+  var trim=line.trim();
+  var lineNeutral=neutralRangeAt(globalStart);
+  if(!lineNeutral && (/^---2x\s*$/i.test(trim)||/^-{3,}\s*$/.test(trim)||trim==="***"))return span("syn-key",line);
+  var treeMode=/^\s*\[[\s\S]*>\s*\(/.test(line);
+  var listMode=inList || /^\s*</.test(line);
+  var result="",i=0;
+  function addText(v){if(v)result+=esc(v);}
+  function add(cls,v){result+=span(cls,v);}
+  function renderSegment(text,offset,ctx){
+   var j=0;
+   while(j<text.length){
+    var absolute=offset+j,globalPos=globalStart+absolute,nr=neutralRangeAt(globalPos),rest=text.slice(j),wm=openAt(line,absolute);
+    if(nr){
+      if(globalPos===nr.a||globalPos===nr.b){add("syn-neutral-marker","#");j++;continue;}
+      addText(text[j]);j++;continue;
+    }
+    if(wm){
+      var close=findClose(line,absolute+wm[0].length);
+      if(close>=0){
+       add("syn-punc","(");add("syn-mark",wm[1]);add("syn-punc",")");add("syn-punc","_'");
+       var innerStart=absolute+wm[0].length,inner=line.slice(innerStart,close);
+       renderSegment(inner,innerStart,ctx);
+       add("syn-punc","'");j=close-offset+1;continue;
+      }
+    }
+    if(rest[0]==='<' && /^<\((https?:|mailto:|#)[^\s)]*\)_\(/i.test(rest)){
+      var lm=/^<\((https?:|mailto:|#)[^\s)]*\)_\(/i.exec(rest);
+      var raw=lm[0],u=raw.slice(2,raw.lastIndexOf(")_"));
+      add("syn-punc","<");add("syn-punc","(");add("syn-url",u);add("syn-punc",")_(");
+      j+=raw.length;continue;
+    }
+    var ch=text[j];
+    if(ctx.list && (ch==='|'||ch===';')){add("syn-punc",ch);j++;continue;}
+    if(ctx.table && ch==='|'){add("syn-punc",ch);j++;continue;}
+    if(ctx.tree && (ch===','||ch==='>'||ch==='('||ch===')')){add("syn-punc",ch);j++;continue;}
+    if(ch==='['||ch===']'){add("syn-punc",ch);j++;continue;}
+    if(ch==='<' && ctx.list){add("syn-punc",ch);j++;continue;}
+    if(ch==='>' && ctx.list){add("syn-punc",ch);j++;continue;}
+    // '_' is syntax only when it directly opens a wrapper; ordinary underscores stay plain.
+    if(ch==='_' && text[j+1]==="'"){add("syn-punc",ch);j++;continue;}
+    // Apostrophes are syntax delimiters only when not embedded in a word.
+    if(ch==='\'' && !(wordChar(text[j-1])&&wordChar(text[j+1]))){add("syn-punc",ch);j++;continue;}
+    addText(ch);j++;
+   }
+  }
+  // Memo syntax: only the special marker and closing marker are highlighted; memo body stays plain.
+  var memo=/^(\s*)\*!\*([\s\S]*?)(\s*)\*\s*$/.exec(line);
+  if(memo){addText(memo[1]);add("syn-key","*!*");renderSegment(memo[2],memo[1].length+3,{table:false,list:false,tree:false});add("syn-key","*");return result;}
+  renderSegment(line,0,{table:inTable,list:listMode,tree:treeMode});
+  return result;
+ }
+ for(var li=0;li<lines.length;li++){
+  var ln=lines[li],trim=ln.trim(),lineStart=globalBase;
+  if(trim==="***" && !neutralRangeAt(lineStart)){
+   out.push(span("syn-key",ln));inTable=!inTable;
+  }else{
+   out.push(renderLine(ln,lineStart));
+   if(/^\s*</.test(ln)&&!/>\s*$/.test(ln))inList=true;
+   if(inList&&/>\s*$/.test(ln))inList=false;
+  }
+  globalBase+=ln.length+1;
+  if(li<lines.length-1)out.push("\n");
+ }
+ return out.join("");
+}
+function hiMd(s){
+ var x=esc(String(s||""));
+ x=x.replace(/(&lt;!--[\s\S]*?--&gt;)/g,'<span class="syn-comment">$1</span>');
+ x=x.replace(/(^|\n)(#{1,6})(\s)/g,'$1<span class="syn-key">$2</span>$3');
+ x=x.replace(/(^|\n)(\s*)([-*+]\s|\d+\.\s)/g,'$1$2<span class="syn-mark">$3</span>');
+ x=x.replace(/(\[[^\]]+\]\()([^\s)]+)(\))/g,'<span class="syn-mark">$1</span><span class="syn-url">$2</span><span class="syn-mark">$3</span>');
+ x=x.replace(/(&lt;(?:hr|div|u|q|strong|em|del|span)\b[^&]*&gt;)/gi,'<span class="syn-html">$1</span>');
+ x=x.replace(/(\*\*|__|~~|`[^`\n]+`)/g,'<span class="syn-mark">$1</span>');
+ return x;
+}
+
+/* ---------- Selection formatting popover ---------- */
+var setAsItems=[
+ {v:"b",t:"Bold — (b)"},{v:"i",t:"Italic — (i)"},{v:"u",t:"Underline — (u)"},{v:"-",t:"Strikethrough — (-)"},{v:'"',t:'Quote — (")'},
+ {v:"neutral",t:"Neutralize — #text#"},
+ {v:"h1",t:"Heading 1 — (h1)"},{v:"h2",t:"Heading 2 — (h2)"},{v:"h3",t:"Body / Heading 3 — (h3)"},{v:"h4",t:"Caption — (h4)"},{v:"h5",t:"Footnote — (h5)"},
+ {v:"ABC",t:"UPPERCASE — (ABC)"},{v:"abc",t:"lowercase — (abc)"},{v:"Abc",t:"Title Case — (Abc)"},{v:"Abcd",t:"Sentence case — (Abcd)"}
+];
+// Selection helpers: adjust these values to tune when list / memo suggestions appear.
+var selectionHelperConfig={longText:180,longKeyword:24,minListItems:3};
+function wrapSelected(kind,text){if(kind==="neutral")return "#"+text+"#";if(kind==='"')return '(")_\''+text+"'";return "("+kind+")_\'"+text+"'";}
+function splitCommaItems(text){
+ var out=[],buf="",paren=0,bracket=0,angle=0,quote=false;
+ for(var i=0;i<text.length;i++){
+  var ch=text[i];
+  if(ch==='\''&&!(wordChar(text[i-1])&&wordChar(text[i+1])))quote=!quote;
+  if(!quote){
+   if(ch==='(')paren++;else if(ch===')'&&paren)paren--;else if(ch==='[')bracket++;else if(ch===']'&&bracket)bracket--;else if(ch==='<')angle++;else if(ch==='>'&&angle)angle--;
+  }
+  if(ch===','&&!quote&&!paren&&!bracket&&!angle){if(buf.trim())out.push(buf.trim());buf="";}else buf+=ch;
+ }
+ if(buf.trim())out.push(buf.trim());
+ return out;
+}
+function getSelectionInfo(){
+ var a=src.selectionStart,b=src.selectionEnd,text=src.value.slice(a,b),clean=text.trim();
+ var items=splitCommaItems(clean),words=clean?clean.split(/\s+/).filter(Boolean):[];
+ var normalized=clean.replace(/\s*,\s*/g,", ");
+ var longKeyword=words.some(function(w){return /^[\p{L}\p{N}_-]+$/u.test(w)&&w.length>=selectionHelperConfig.longKeyword;});
+ var paragraphLike=clean.length>=selectionHelperConfig.longText || (text.indexOf("\n")>=0 && words.length>=25);
+ var listCandidate=items.length>=selectionHelperConfig.minListItems && items.length<=50 && normalized===items.join(", ") && !/[<>\[\]]/.test(clean) && text.indexOf("\n")<0;
+ return {a:a,b:b,text:text,clean:clean,items:items,isListCandidate:listCandidate,isMemoCandidate:paragraphLike||longKeyword};
+}
+function makeMemoSnippet(text){return "*!* '"+text+"' *";}
+function renderListSnippet(items,kind){return kind==="ordered"?"< "+items.join(" ; ")+" >":"< "+items.join(" | ")+" >";}
+function updateSetAsHelpers(){
+ var info=getSelectionInfo(),listBox=$("listTools"),memoBox=$("memoClipTools"),memoPre=$("memoClipPreview"),ls=$("listFormatSelect");
+ listBox.hidden=!info.isListCandidate;memoBox.hidden=!info.isMemoCandidate;ls.value="";
+ if(info.isMemoCandidate)memoPre.innerHTML=hiEf(makeMemoSnippet(info.text));
+}
+function applySetAs(kind){
+ var a=src.selectionStart,b=src.selectionEnd;if(a===b){hideSetAs();src.focus();return;}
+ var before=src.value,selected=before.slice(a,b),replacement;
+ if(/^(h[1-5]|")$/.test(kind)&&selected.indexOf("\n")>=0)replacement=selected.split("\n").map(function(line){return line.trim()?wrapSelected(kind,line):line;}).join("\n");
+ else replacement=wrapSelected(kind,selected);
+ historyLock=true;src.value=before.slice(0,a)+replacement+before.slice(b);src.selectionStart=a;src.selectionEnd=a+replacement.length;historyLock=false;
+ pushImmediateUndo(before);upd();var chosen=setAsItems.find(function(x){return x.v===kind;});say("Applied "+(chosen?chosen.t:"format"));hideSetAs();src.focus();
+}
+function applyListFormat(kind){
+ var info=getSelectionInfo();if(!info.isListCandidate||!kind)return;
+ var before=src.value,replacement=renderListSnippet(info.items,kind);
+ historyLock=true;src.value=before.slice(0,info.a)+replacement+before.slice(info.b);src.selectionStart=info.a;src.selectionEnd=info.a+replacement.length;historyLock=false;
+ pushImmediateUndo(before);upd();say(kind==="ordered"?"Applied ordered list":"Applied unordered list");hideSetAs();src.focus();
+}
+function applyMemoClip(){
+ var info=getSelectionInfo();if(!info.isMemoCandidate)return;
+ var before=src.value,replacement=makeMemoSnippet(info.text);
+ historyLock=true;src.value=before.slice(0,info.a)+replacement+before.slice(info.b);src.selectionStart=info.a;src.selectionEnd=info.a+replacement.length;historyLock=false;
+ pushImmediateUndo(before);upd();say("Applied Memo Clipper");hideSetAs();src.focus();
+}
+function positionSetAs(){
+ var pop=$("setasPopover");if(!pop||pop.hidden)return;
+ var measure=$("selectionMeasure");if(!measure)return;
+ var a=src.selectionStart||0;
+ measure.innerHTML=esc(src.value.slice(0,a))+ '<span id="selectionCaret">&#8203;</span>';
+ measure.scrollTop=src.scrollTop;measure.scrollLeft=src.scrollLeft;
+ var c=$("selectionCaret");if(!c)return;
+ var r=c.getBoundingClientRect(),pw=pop.offsetWidth||300,ph=pop.offsetHeight||44;
+ var left=Math.max(8,Math.min(window.innerWidth-pw-8,r.left));
+ var top=r.bottom+8;
+ if(top+ph>window.innerHeight-8)top=r.top-ph-8;
+ if(top<8)top=8;
+ pop.style.left=Math.round(left)+'px';pop.style.top=Math.round(top)+'px';
+}
+function showSetAs(){
+ var pop=$("setasPopover"),info=getSelectionInfo();
+ if(src.selectionEnd<=src.selectionStart||!info.clean){hideSetAs();return;}
+ pop.hidden=false;
+ $("setasSelect").value="";
+ updateSetAsHelpers();
+ requestAnimationFrame(positionSetAs);
+}
+function hideSetAs(){var pop=$("setasPopover");if(pop){pop.hidden=true;$("listTools").hidden=true;$("memoClipTools").hidden=true;}}
+var $=function(id){return document.getElementById(id);},src=$("src"),srcCode=$("srcCode"),out=$("out"),st=$("st"),fname="document";
+var undoStack=[],redoStack=[],historyTimer=null,pendingHistory=null,historyLock=false,lastValue="";
+var undoBtn=$("undo"),redoBtn=$("redo");
+function say(x){st.textContent=x;}
+function trimStack(a){while(a.length>10)a.shift();}
+function updateHistoryUI(){
+ undoBtn.disabled=!undoStack.length;
+ redoBtn.disabled=!redoStack.length;
+ undoBtn.title=undoStack.length?"Undo (Ctrl/Cmd+Z) — "+undoStack.length+" available":"Undo (Ctrl/Cmd+Z)";
+ redoBtn.title=redoStack.length?"Redo (Ctrl/Cmd+Y) — "+redoStack.length+" available":"Redo (Ctrl/Cmd+Y)";
+}
+function flushHistory(){
+ if(historyTimer){clearTimeout(historyTimer);historyTimer=null;}
+ if(pendingHistory!==null){
+  if(pendingHistory!==src.value){undoStack.push(pendingHistory);trimStack(undoStack);redoStack=[];}
+  pendingHistory=null;
+ }
+ updateHistoryUI();
+}
+function resetHistory(){
+ if(historyTimer){clearTimeout(historyTimer);historyTimer=null;}
+ undoStack=[];redoStack=[];pendingHistory=null;lastValue=src.value;updateHistoryUI();
+}
+function recordInput(){
+ var now=src.value;
+ if(historyLock){lastValue=now;return;}
+ if(now===lastValue)return;
+ if(pendingHistory===null)pendingHistory=lastValue;
+ lastValue=now;
+ if(historyTimer)clearTimeout(historyTimer);
+ historyTimer=setTimeout(function(){historyTimer=null;flushHistory();},650);
+}
+function pushImmediateUndo(before){
+ if(before===src.value)return;
+ flushHistory();
+ undoStack.push(before);trimStack(undoStack);redoStack=[];lastValue=src.value;updateHistoryUI();
+}
+function doUndo(){
+ flushHistory();
+ if(!undoStack.length)return;
+ var target=undoStack.pop(),current=src.value;
+ redoStack.push(current);trimStack(redoStack);
+ historyLock=true;src.value=target;lastValue=target;upd();historyLock=false;
+ say("Undo");updateHistoryUI();src.focus();
+}
+function doRedo(){
+ flushHistory();
+ if(!redoStack.length)return;
+ var target=redoStack.pop(),current=src.value;
+ undoStack.push(current);trimStack(undoStack);
+ historyLock=true;src.value=target;lastValue=target;upd();historyLock=false;
+ say("Redo");updateHistoryUI();src.focus();
+}
+undoBtn.onclick=doUndo;redoBtn.onclick=doRedo;
+document.addEventListener("keydown",function(e){
+ var mod=e.ctrlKey||e.metaKey;
+ if(!mod||e.altKey)return;
+ if(e.key.toLowerCase()==="z"){e.preventDefault();if(e.shiftKey)doRedo();else doUndo();}
+ else if(e.key.toLowerCase()==="y"){e.preventDefault();doRedo();}
+});
+(function initSetAs(){
+ var sel=$("setasSelect");
+ setAsItems.forEach(function(item){var o=document.createElement("option");o.value=item.v;o.textContent=item.t;sel.appendChild(o);});
+ src.addEventListener("select",showSetAs);
+ src.addEventListener("mouseup",function(){setTimeout(showSetAs,0);});
+ src.addEventListener("keyup",function(e){if(e.shiftKey||["ArrowLeft","ArrowRight","Home","End"].indexOf(e.key)>=0)setTimeout(showSetAs,0);});
+ src.addEventListener("scroll",function(){if(!$("setasPopover").hidden)positionSetAs();});
+ window.addEventListener("resize",function(){if(!$("setasPopover").hidden)positionSetAs();});
+ sel.addEventListener("change",function(){if(this.value)applySetAs(this.value);});
+ $("applyListFormat").addEventListener("click",function(){applyListFormat($("listFormatSelect").value);});
+ $("applyMemoClip").addEventListener("click",applyMemoClip);
+ $("copyMemoClip").addEventListener("click",function(){var info=getSelectionInfo();if(info.isMemoCandidate)copy(makeMemoSnippet(info.text),this);});
+ document.addEventListener("mousedown",function(e){var pop=$("setasPopover");if(pop.hidden)return;if(e.target===src||pop.contains(e.target))return;hideSetAs();});
+ document.addEventListener("keydown",function(e){if(e.key==="Escape"){hideSetAs();closeClearModal();}});
+})();
+var SAMPLE=`(h1)_'EF Notes — Lightweight Writing Format'
+(h3)_'A compact .ef demo for formatting, structure, lists, links, memos, and reusable text.'
+---2x
+(h2)_'What this app does'
+(h3)_'EF Notes turns simple text into a readable document using bracket-based formatting that stays personal and easy to type.'
+(h4)_'Tip: select text and use Set as to wrap it automatically.'
+(h5)_'Sample coverage: every preset in the app is represented below.'
+(h2)_'Formatting'
+(b)_'Bold' (i)_'italic' (u)_'underline' (-)_'struck'
+(")_'Bracket syntax keeps the writing lightweight and readable.'
+(h2)_'Neutralize'
+#(b)_'This stays literal > [button] | item ; (not formatted)'#
+---
+(h2)_'App data'
+***
+| Feature | Status | Purpose |
+| Editor | Ready | Write plain text and .ef syntax |
+| Preview | Live | See the formatted result |
+| Markdown | Ready | Convert .ef to Markdown and back |
+***
+(h2)_'Quick actions'
+< Preview | Export .ef | View Markdown >
+< Draft ; Format ; Publish >
+(h2)_'Structure'
+[(EF Notes)>(Editor, (Formatting)>(Bold, Lists, Tables), Preview, Export)]
+(h2)_'Link'
+Visit <(https://github.com)_(GitHub)> for source and sharing.
+(h2)_'Containers'
+[ A clean editor for plain text and bracket-based formatting. ]
+[ <(https://instagram.com)_(Open portfolio)> ]
+(h2)_'Memo'
+*!* 'Idea: keep syntax personal, readable, and easy to convert.' *
+(h2)_'Letter case'
+(ABC)_'feature' (abc)_'EXPORT' (Abc)_'writing tools' (Abcd)_'keep the syntax simple. use it anywhere.'
+(h5)_'*End of demo — all Presets & Guides are covered in this sample.'`;
+var PRE=[
+{n:"Title & Text Styles",d:"Five text styles. Alone on a line each becomes a block; inside a sentence it styles only that part.",
+ notes:["(h1)_'text'  Title / headline (largest)","(h2)_'text'  Subtitle / subhead (accent color)","(h3)_'text'  Body text (normal paragraph)","(h4)_'text'  Caption (small, italic, muted)","(h5)_'text'  Footnote (smallest, muted)"],
+ t:"(h1)_'Title'\n(h2)_'Subtitle'\n(h3)_'Body text'\n(h4)_'Caption'\n(h5)_'Footnote'"},
+{n:"Text Marks",d:"Wrap text as (mark)_'text'. Marks can be nested; an apostrophe inside a word (it's) is safe.",
+ notes:["(b)_'text'  bold","(i)_'text'  italic","(u)_'text'  underline","(-)_'text'  strikethrough","Nesting: (b)_'bold (i)_'and italic''"],
+ t:"(b)_'bold' (i)_'italic' (u)_'underline' (-)_'strikethrough'\n(b)_'bold (i)_'and italic''"},
+{n:"Neutralize",d:"Wrap literal text in # ... #. Everything inside is treated as plain text and cannot trigger .ef formatting, brackets, list separators, tree syntax or other markers. The # guards remain visible in the editor and are hidden only in the rendered preview, while remaining preserved for round-trip conversion.",
+ notes:["#text#  neutralize / literal text","Inside # ... #, symbols such as > [ ] ( ) \' | ; , and .ef marks are treated as plain text","The # markers remain visible in the source editor and are hidden only in preview"],
+ t:"Normal (b)_\'text\' stays formatted; # (b)_\'this stays literal > [ ] | ; ( ) \"quote\" #"},
+{n:"Quote",d:"A quote alone on a line becomes a block quote; inside a sentence it is shown in curly quotes.",
+ notes:["(\")_'text'  quote"],
+ t:"(\")_'Quote here'"},
+{n:"Dividers",d:"Horizontal separators, written alone on a line.",
+ notes:["---  single line (3 dashes)","---2x  double line"],
+ t:"Above\n---\nMiddle\n---2x\nBelow"},
+{n:"Table",d:"A block between two *** lines. Each row is one line, columns separated by |. The first row is the header.",
+ notes:["*** opens and closes the table","| a | b | c |  one row","Cells accept text marks and links"],
+ t:"***\n| No | Name | City |\n| 1. | Ann | Pati |\n| 2. | Ben | Kudus |\n***"},
+{n:"Lists",d:"Wrapped in < >. The separator decides the type. A list may span several lines.",
+ notes:["< a | b | c >  unordered list (bullets)","< a ; b ; c >  ordered list (numbers)","Items accept text marks and links"],
+ t:"< Apples | Oranges | Pears >\n< First ; Second ; Third >"},
+{n:"Link",d:"A clickable hyperlink that opens in a new tab. Only http, https, mailto and # targets are allowed.",
+ notes:["<(url)_(display text)>","Display text accepts text marks"],
+ t:"Visit <(https://anthropic.com)_(Anthropic)> today."},
+{n:"Tree",d:"A hierarchy in [ ]. A name followed by > and its children in parentheses, separated by commas. Nesting can go as deep as needed and may span several lines.",
+ notes:["[(parent)>(child1, child2, (child3)>(subchild1))]","Names may be plain or in parentheses","Names accept text marks","A [ ] without >( is a container, not a tree"],
+ t:"[(Parent)>(Child 1, Child 2, (Child 3)>(Sub-child 1, Sub-child 2))]"},
+{n:"Container & Button",d:"[ ... ] wraps content in a box. When it holds only links, each link becomes a button.",
+ notes:["[ text ]  container box","[ <(url)_(label)> ]  link becomes a button","Container text accepts text marks","[ ] containing >( is read as a tree instead"],
+ t:"[ A note inside a container ]\n[ <(https://anthropic.com)_(Anthropic)> ]"},
+{n:"Memo",d:"An editable text box with a Copy button, for short diary entries or memos. The text between the quotes is the starting content (leave it empty for a blank memo). Edits stay in the preview and are not written back to the source.",
+ notes:["*!* 'text' *  memo container","Copy puts the current text on the clipboard and shows Copied below the box"],
+ t:"*!* 'Dear diary, today was a good day.' *"},
+{n:"Letter Case",d:"Case conversion applies only inside these marks; all other text stays exactly as typed.",
+ notes:["(ABC)_'text'  UPPERCASE","(abc)_'text'  lowercase","(Abc)_'text'  Title Case","(Abcd)_'text'  Sentence case"],
+ t:"(ABC)_'make me loud'\n(abc)_'MAKE ME QUIET'\n(Abc)_'make me a title'\n(Abcd)_'make me. a sentence'"}],cur=-1;
+function drawChips(){var c=$("pre");c.innerHTML="<b>Presets &amp; Guides</b>";
+ PRE.forEach(function(p,i){var b=document.createElement("button");b.className="chip"+(i===cur?" on":"");b.textContent=p.n;b.onclick=function(){openPE(i);};c.appendChild(b);});}
+function openPE(i){if(cur===i&&!$("pe").hidden){closePE();return;}cur=i;var p=PRE[i],u=$("pnotes");
+ $("pn").textContent=p.n;$("pd2").textContent=p.d;u.innerHTML="";
+ p.notes.forEach(function(x){var li=document.createElement("li");li.textContent=x;u.appendChild(li);});
+ $("pt").innerHTML=hiEf(p.t);$("pmd").innerHTML=hiMd(efToMd(p.t));$("pr").innerHTML=render(p.t);$("pe").hidden=false;drawChips();}
+function closePE(){cur=-1;$("pe").hidden=true;drawChips();}
+$("pc").onclick=closePE;
+$("pcp").onclick=function(){if(cur>=0)copy(PRE[cur].t,this);};
+$("pcmd").onclick=function(){if(cur>=0)copy(efToMd(PRE[cur].t),this);};
+function syncEditorView(){
+  srcCode.innerHTML=hiEf(src.value)+"\n";
+  srcCode.scrollTop=src.scrollTop;
+  srcCode.scrollLeft=src.scrollLeft;
+}
+function upd(){var md=efToMd(src.value);out.innerHTML=render(src.value);syncEditorView();try{localStorage.setItem("ef-draft",src.value);}catch(e){}}
+src.addEventListener("input",function(){recordInput();upd();});
+src.addEventListener("scroll",syncEditorView);
+var mdmodal=$("mdmodal"),mdmodalout=$("mdmodalout");
+function openMdModal(){mdmodalout.innerHTML=hiMd(efToMd(src.value));mdmodal.hidden=false;document.body.style.overflow="hidden";}
+function closeMdModal(){mdmodal.hidden=true;document.body.style.overflow="";}
+$("mdview").onclick=openMdModal;
+$("mdmodalclose").onclick=closeMdModal;
+$("mdcopy").onclick=function(){copy(efToMd(src.value),this);};
+$("mdmodalexport").onclick=function(){exportMarkdown();};
+mdmodal.addEventListener("click",function(e){if(e.target===mdmodal)closeMdModal();});
+document.addEventListener("keydown",function(e){if(e.key==="Escape"&&!mdmodal.hidden)closeMdModal();});
+function load(txt){flushHistory();historyLock=true;src.value=txt;historyLock=false;resetHistory();upd();}
+function readFile(f){
+  if(!f)return;
+  fname=f.name.replace(/\.[^.]+$/,"")||"document";
+  var isMd=/\.(md|markdown)$/i.test(f.name);
+  var r=new FileReader();
+  r.onload=function(){
+    var raw=String(r.result);
+    if(isSecretText(raw)){
+      setEditorTab(false);
+      setCryptoSubtab("import");
+      try{loadSecretText(raw,f.name);openCryptoPasswordModal();}catch(e){$("secretFileName").textContent="Invalid encrypted .ef file.";setCryptoStatus(e&&e.message?e.message:"Invalid encrypted .ef file.","err");}
+      return;
+    }
+    load(isMd?mdToEf(raw):raw);
+    setEditorTab(true);
+    say(isMd?"Imported "+f.name+" and converted Markdown → .ef":"Imported "+f.name);
+  };
+  r.readAsText(f);
+}
+$("file").addEventListener("change",function(e){readFile(e.target.files[0]);e.target.value="";});
+["dragover","drop"].forEach(function(ev){document.addEventListener(ev,function(e){e.preventDefault();if(ev==="drop")readFile(e.dataTransfer.files[0]);});});
+$("sample").onclick=function(){load(SAMPLE);};
+var clearModal=$("clearModal");
+function openClearModal(){if(clearModal)clearModal.hidden=false;}
+function closeClearModal(){if(clearModal)clearModal.hidden=true;}
+$("clearText").onclick=openClearModal;
+$("clearCancel").onclick=closeClearModal;
+$("clearConfirm").onclick=function(){
+ if(src.value){var before=src.value;historyLock=true;src.value="";src.selectionStart=src.selectionEnd=0;historyLock=false;pushImmediateUndo(before);upd();}
+ else resetHistory();
+ hideSetAs();closeClearModal();say("Text cleared");src.focus();
+};
+clearModal.addEventListener("mousedown",function(e){if(e.target===clearModal)closeClearModal();});
+
+function clip(txt,ok){
+ function fb(){var ta=document.createElement("textarea");ta.value=txt;document.body.appendChild(ta);ta.select();try{document.execCommand("copy");ok();}catch(e){}ta.remove();}
+ try{navigator.clipboard.writeText(txt).then(ok,fb);}catch(e){fb();}}
+function copy(txt,btn){var o=btn.dataset.o||(btn.dataset.o=btn.textContent);
+ clip(txt,function(){btn.textContent="Copied";setTimeout(function(){btn.textContent=o;},1200);});}
+document.addEventListener("input",function(e){var t=e.target;if(t.classList&&t.classList.contains("memo-ta"))mv[t.dataset.src]=t.value;});
+document.addEventListener("click",function(e){var b=e.target.closest&&e.target.closest(".memo-copy");if(!b)return;
+ var bx=b.closest(".memo"),ta=bx.querySelector("textarea"),s=bx.querySelector(".memo-st");
+ clip(ta.value,function(){s.textContent="Copied";clearTimeout(bx._t);bx._t=setTimeout(function(){s.textContent="";},1500);});});
+var mainEl=document.querySelector("main");
+function setH(v){mainEl.style.setProperty("--ph",Math.max(240,Math.min(2400,Math.round(v)))+"px");}
+Array.prototype.forEach.call(document.querySelectorAll(".grip"),function(g){
+ g.addEventListener("pointerdown",function(e){e.preventDefault();var y0=e.clientY,h0=g.parentNode.offsetHeight;g.setPointerCapture(e.pointerId);
+  function mv2(ev){setH(h0+ev.clientY-y0);}
+  function up(){g.removeEventListener("pointermove",mv2);g.removeEventListener("pointerup",up);g.removeEventListener("pointercancel",up);}
+  g.addEventListener("pointermove",mv2);g.addEventListener("pointerup",up);g.addEventListener("pointercancel",up);});
+ g.addEventListener("keydown",function(e){if(e.key==="ArrowDown"||e.key==="ArrowUp"){e.preventDefault();setH(g.parentNode.offsetHeight+(e.key==="ArrowDown"?30:-30));}});});
+var DL=null;
+try{if(window.claude&&window.claude.use)window.claude.use("downloads").then(function(d){DL=d;}).catch(function(){});}catch(e){}
+$("exp").onclick=function(){
+ var text=src.value;
+ if(DL){
+  DL.save({filename:fname+".ef",data:text}).then(function(){say("Saved "+fname+".ef");},function(e){
+   if(e&&e.code==="rejected_extension"){DL.save({filename:fname+".txt",data:text}).then(function(){say("Saved as "+fname+".txt (this host blocks .ef). Rename it to .ef — it is the same plain text.");},function(){say("Export cancelled.");});}
+   else say(e&&e.code==="declined"?"Export cancelled.":"Export unavailable here — use Copy text.");});
+ }else{
+  try{var a=document.createElement("a");a.href=URL.createObjectURL(new Blob([text],{type:"text/plain;charset=utf-8"}));a.download=fname+".ef";document.body.appendChild(a);a.click();a.remove();say("Export started. If nothing downloads, use Copy text.");}
+  catch(e){say("Export unavailable here — use Copy text.");}}};
+
+function exportMarkdown(){
+  var md=efToMd(src.value),name=fname+".md";
+  if(DL){
+    DL.save({filename:name,data:md}).then(function(){say("Saved "+name);},function(e){
+      say(e&&e.code==="declined"?"Export cancelled.":"Markdown export unavailable here — use Copy text.");
+    });
+  }else{
+    try{
+      var a=document.createElement("a");
+      a.href=URL.createObjectURL(new Blob([md],{type:"text/markdown;charset=utf-8"}));
+      a.download=name;document.body.appendChild(a);a.click();a.remove();
+      say("Export started: "+name);
+    }catch(e){say("Markdown export unavailable here — use Copy text.");}
+  }
+}
+$("expmd").onclick=exportMarkdown;
+
+
+/* ---------- Encryption / Decryption ---------- */
+var secretEnvelope=null, lastRecoveryKey="", lastEncryptionPassword="", lastEncryptedFilename="", lastCredentialFilename="", lastCredentialNote="", cryptoPBKDF2Iterations=300000;
+var cryptoPasswordAttempts=0, cryptoPasswordMaxAttempts=3, cryptoPasswordPending=false, decryptedImportText="", cryptoImportLinked=false, pendingPlainImportText="", pendingPlainImportName="";
+function b64u(bytes){var s="";for(var i=0;i<bytes.length;i++)s+=String.fromCharCode(bytes[i]);return btoa(s).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/g,"");}
+function fromB64u(str){str=String(str||"").replace(/-/g,"+").replace(/_/g,"/");while(str.length%4)str+="=";var bin=atob(str),a=new Uint8Array(bin.length);for(var i=0;i<bin.length;i++)a[i]=bin.charCodeAt(i);return a;}
+function randomBytes(n){var a=new Uint8Array(n);crypto.getRandomValues(a);return a;}
+function bytesUtf8(s){return new TextEncoder().encode(s);}
+function utf8Text(a){return new TextDecoder().decode(a);}
+function eqText(a,b){return String(a||"").trim()===String(b||"").trim();}
+async function derivePasswordKey(password,salt,iterations){var base=await crypto.subtle.importKey("raw",bytesUtf8(password),"PBKDF2",false,["deriveKey"]);return crypto.subtle.deriveKey({name:"PBKDF2",salt:salt,iterations:Number(iterations)||cryptoPBKDF2Iterations,hash:"SHA-256"},base,{name:"AES-GCM",length:256},false,["encrypt","decrypt"]);}
+async function importRecoveryKey(text){var raw=fromB64u(text);if(raw.length!==32)throw new Error("Invalid Recovery Key.");return crypto.subtle.importKey("raw",raw,{name:"AES-GCM"},false,["encrypt","decrypt"]);}
+async function wrapCek(key,cek){var iv=randomBytes(12),box=await crypto.subtle.encrypt({name:"AES-GCM",iv:iv},key,cek);return {iv:b64u(iv),data:b64u(new Uint8Array(box))};}
+async function unwrapCek(key,wrapped){var iv=fromB64u(wrapped.iv),data=fromB64u(wrapped.data);return new Uint8Array(await crypto.subtle.decrypt({name:"AES-GCM",iv:iv},key,data));}
+async function encryptPayload(cek,plain){var iv=randomBytes(12),box=await crypto.subtle.encrypt({name:"AES-GCM",iv:iv},cek,bytesUtf8(plain));return {iv:b64u(iv),data:b64u(new Uint8Array(box))};}
+async function decryptPayload(cek,payload){var iv=fromB64u(payload.iv),data=fromB64u(payload.data);return utf8Text(new Uint8Array(await crypto.subtle.decrypt({name:"AES-GCM",iv:iv},cek,data)));}
+function buildSecretText(env){return "EF-SECRET/1\n"+JSON.stringify(env,null,2)+"\n";}
+function parseSecretText(text){var lines=String(text||"").replace(/\r/g,"").split("\n");if(lines[0].trim()!=="EF-SECRET/1")throw new Error("Not an EF-SECRET/1 file.");var body=lines.slice(1).join("\n").trim();var env=JSON.parse(body);if(env.version!==1||env.mode!=="password-recovery"||!env.payload||!env.passwordWrap||!env.recoveryWrap)throw new Error("Unsupported or invalid encrypted .ef file.");return env;}
+function isSecretText(text){return /^EF-SECRET\/1\s*\n/i.test(String(text||""));}
+function setCryptoStatus(msg,kind){var el=$("cryptoStatus");if(!el)return;el.textContent=msg;el.className="crypto-status"+(kind?" "+kind:"");}
+function showCryptoTab(){setEditorTab(false);}
+function setEditorTab(isEditor){var ev=$("editorView"),cv=$("cryptoView"),be=$("tabEditor"),bc=$("tabCrypto");ev.style.display=isEditor?"block":"none";cv.classList.toggle("active",!isEditor);be.classList.toggle("active",isEditor);bc.classList.toggle("active",!isEditor);be.setAttribute("aria-selected",String(isEditor));bc.setAttribute("aria-selected",String(!isEditor));if(!isEditor)setCryptoStatus("");}
+function setCryptoSubtab(which){var create=$("cryptoCreateCard"),imp=$("cryptoImportCard"),bc=$("cryptoTabCreate"),bi=$("cryptoTabImport"),isCreate=which!=="import";create.hidden=!isCreate;imp.hidden=isCreate;bc.classList.toggle("active",isCreate);bi.classList.toggle("active",!isCreate);bc.setAttribute("aria-selected",String(isCreate));bi.setAttribute("aria-selected",String(!isCreate));}
+function downloadTextFile(filename,text,type){try{var a=document.createElement("a");a.href=URL.createObjectURL(new Blob([text],{type:type||"text/plain;charset=utf-8"}));a.download=filename;document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(a.href);},1000);return true;}catch(e){return false;}}
+function validatePasswordPair(a,b){if(!a||a.length<5)throw new Error("Use a password with at least 5 characters.");if(a!==b)throw new Error("Passwords do not match.");}
+function updateEncryptPasswordState(){var a=$("encPassword"),b=$("encPassword2"),state=$("encryptPasswordState"),msg=$("encryptPasswordStateMessage"),countA=$("encPasswordCount"),countB=$("encPassword2Count"),btn=$("encryptCurrent"),source=$("cryptoSource");if(!a||!b||!state||!msg||!countA||!countB||!btn||!source)return false;var la=a.value.length,lb=b.value.length,valid=la>=5&&lb>=5&&a.value===b.value&&!!source.value.trim();countA.textContent=la+" / 5";countB.textContent=lb+" / 5";state.classList.toggle("valid",valid);state.classList.toggle("invalid",!valid);btn.classList.toggle("crypto-ready",valid);btn.classList.toggle("crypto-invalid",!valid);btn.disabled=!valid;if(!la&&!lb)msg.textContent="Enter at least 5 characters and make both passwords match.";else if(la<5||lb<5)msg.textContent="Password length is below the 5-character minimum.";else if(a.value!==b.value)msg.textContent="Passwords do not match.";else if(!source.value.trim())msg.textContent="Add .ef text before preparing the encrypted file.";else msg.textContent="Password requirements met — ready to encrypt.";return valid;}
+function buildCredentialNote(filename,password,recovery){return ["EF-SECRET/1 CREDENTIAL NOTE","===========================","Encrypted file: "+filename,"","Password:",password,"","Persistent Recovery Key:",recovery,"","The Recovery Key is persistent for this encrypted file.","It can be reused to decrypt the file or reset the password.","Keep this note private and preferably store it separately from the encrypted file.",""].join("\n");}
+function setCryptoExportReady(ready){var box=$("cryptoExportBox"),eb=$("exportEncrypted"),cb=$("exportCredentials"),zb=$("exportZip"),vb=$("viewEncryptedText");if(box)box.hidden=!ready;if(eb)eb.disabled=!ready||!secretEnvelope;if(cb)cb.disabled=!ready||!lastCredentialNote;if(zb)zb.disabled=!ready||!secretEnvelope||!lastCredentialNote;if(vb)vb.disabled=!ready||!secretEnvelope;updateEncryptPasswordState();}
+function invalidatePreparedCrypto(){secretEnvelope=null;lastRecoveryKey="";lastEncryptionPassword="";lastEncryptedFilename="";lastCredentialFilename="";lastCredentialNote="";$("recoveryBox").hidden=true;setCryptoExportReady(false);updateEncryptPasswordState();}
+function setReleaseButtonState(released){var b=$("cryptoReleaseEditor");if(!b)return;if(released){b.disabled=false;b.classList.add("crypto-release-done");b.textContent="Go to text editor";b.title="Go to the main .ef Text Editor";}else{b.classList.remove("crypto-release-done");b.textContent="Release Encryption | add to text editor";b.title="Release this decrypted document to the main .ef Text Editor";}}
+function setReadOnlyImportText(text,status){decryptedImportText=String(text||"");cryptoImportLinked=false;$("cryptoReadOnlyText").value=decryptedImportText;setReleaseButtonState(false);$("cryptoReleaseEditor").disabled=!decryptedImportText;$("cryptoReadOnlyStatus").textContent=status||"Decrypted document is ready for review.";}
+function markReadOnlyLinked(){cryptoImportLinked=false;$("cryptoReadOnlyText").value=decryptedImportText;setReleaseButtonState(true);$("cryptoReleaseEditor").disabled=!decryptedImportText;$("cryptoReadOnlyStatus").textContent="Released to the .ef Editor. Read Only Mode remains the original imported decrypted snapshot.";}
+function resetCryptoWorkspace(){secretEnvelope=null;lastRecoveryKey="";lastEncryptionPassword="";lastEncryptedFilename="";lastCredentialFilename="";lastCredentialNote="";cryptoPasswordAttempts=0;cryptoPasswordPending=false;decryptedImportText="";cryptoImportLinked=false;$("cryptoSource").value="";$("encPassword").value="";$("encPassword2").value="";$("decRecovery").value="";$("resetPassword").value="";$("resetPassword2").value="";$("secretFileName").textContent="No encrypted file loaded.";$("cryptoReadOnlyText").value="";$("cryptoReadOnlyStatus").textContent="No decrypted document available.";setReleaseButtonState(false);$("cryptoReleaseEditor").disabled=true;$("recoveryBox").hidden=true;$("cryptoPasswordModal").hidden=true;$("cryptoEncryptedTextModal").hidden=true;$("cryptoImportInfoPopover").hidden=true;$("cryptoImportInfo").setAttribute("aria-expanded","false");document.body.style.overflow="";setCryptoExportReady(false);setCryptoSubtab("create");setCryptoStatus("Fresh blank Encrypt & Decrypt workspace.","ok");}
+async function encryptCurrentEditor(){try{var source=$("cryptoSource").value,password=$("encPassword").value,confirm=$("encPassword2").value;validatePasswordPair(password,confirm);if(!source.trim())throw new Error("The Encrypt & Decrypt text area is empty. Import text from the editor first.");setCryptoStatus("Encrypting…");var cekBytes=randomBytes(32),cek=await crypto.subtle.importKey("raw",cekBytes,{name:"AES-GCM"},false,["encrypt","decrypt"]);var passwordSalt=randomBytes(16),passwordKey=await derivePasswordKey(password,passwordSalt),passwordWrap=await wrapCek(passwordKey,cekBytes);var recoveryBytes=randomBytes(32),recoveryText=b64u(recoveryBytes),recoveryKey=await importRecoveryKey(recoveryText),recoveryWrap=await wrapCek(recoveryKey,cekBytes);var payload=await encryptPayload(cek,source);secretEnvelope={version:1,mode:"password-recovery",kdf:"PBKDF2-SHA-256",iterations:cryptoPBKDF2Iterations,salt:b64u(passwordSalt),passwordWrap:passwordWrap,recoveryWrap:recoveryWrap,payload:payload};lastRecoveryKey=recoveryText;lastEncryptionPassword=password;lastEncryptedFilename=(fname||"document")+".ef";lastCredentialFilename=(fname||"document")+".password-recovery.txt";lastCredentialNote=buildCredentialNote(lastEncryptedFilename,lastEncryptionPassword,lastRecoveryKey);$("recoveryKeyText").textContent=recoveryText;$("recoveryBox").hidden=false;setCryptoExportReady(true);setCryptoStatus("Encryption prepared. Export the encrypted .ef, credential note, or both as a ZIP.","ok");say("Encrypted package prepared — export from Encrypt & Decrypt");}catch(e){setCryptoStatus(e&&e.message?e.message:"Encryption failed.","err");}}
+function exportEncrypted(){if(!secretEnvelope)return setCryptoStatus("Prepare an encrypted file first.","err");var name=lastEncryptedFilename||((fname||"document")+".ef");if(downloadTextFile(name,buildSecretText(secretEnvelope),"text/plain;charset=utf-8"))setCryptoStatus("Exported encrypted "+name,"ok");else setCryptoStatus("Encrypted export unavailable here.","err");}
+function exportCredentials(){if(!lastCredentialNote)return setCryptoStatus("Prepare an encrypted file first.","err");var name=lastCredentialFilename||((fname||"document")+".password-recovery.txt");if(downloadTextFile(name,lastCredentialNote,"text/plain;charset=utf-8"))setCryptoStatus("Exported password & Recovery Key note: "+name,"ok");else setCryptoStatus("Credential note export unavailable here.","err");}
+function crc32(bytes){var table=crc32.table;if(!table){table=crc32.table=new Uint32Array(256);for(var n=0;n<256;n++){var c=n;for(var k=0;k<8;k++)c=(c>>>1)^(c&1?0xEDB88320:0);table[n]=c>>>0;}}var crc=0xFFFFFFFF;for(var i=0;i<bytes.length;i++)crc=table[(crc^bytes[i])&255]^(crc>>>8);return (crc^0xFFFFFFFF)>>>0;}
+function zip16(v){return new Uint8Array([v&255,(v>>>8)&255]);}
+function zip32(v){return new Uint8Array([v&255,(v>>>8)&255,(v>>>16)&255,(v>>>24)&255]);}
+function concatBytes(parts){var total=0;parts.forEach(function(p){total+=p.length;});var out=new Uint8Array(total),off=0;parts.forEach(function(p){out.set(p,off);off+=p.length;});return out;}
+function makeStoredZip(entries){var locals=[],centrals=[],offset=0;entries.forEach(function(entry){var name=bytesUtf8(entry.name),data=bytesUtf8(entry.data),crc=crc32(data);var local=concatBytes([zip32(0x04034b50),zip16(20),zip16(0x0800),zip16(0),zip16(0),zip16(0),zip32(crc),zip32(data.length),zip32(data.length),zip16(name.length),zip16(0),name,data]);locals.push(local);var central=concatBytes([zip32(0x02014b50),zip16(20),zip16(20),zip16(0x0800),zip16(0),zip16(0),zip16(0),zip32(crc),zip32(data.length),zip32(data.length),zip16(name.length),zip16(0),zip16(0),zip16(0),zip16(0),zip32(0),zip32(offset),name]);centrals.push(central);offset+=local.length;});var localAll=concatBytes(locals),centralAll=concatBytes(centrals),eocd=concatBytes([zip32(0x06054b50),zip16(0),zip16(0),zip16(entries.length),zip16(entries.length),zip32(centralAll.length),zip32(localAll.length),zip16(0)]);return concatBytes([localAll,centralAll,eocd]);}
+function exportZip(){if(!secretEnvelope||!lastCredentialNote)return setCryptoStatus("Prepare an encrypted file first.","err");var encryptedName=lastEncryptedFilename||((fname||"document")+".ef"),noteName=lastCredentialFilename||((fname||"document")+".password-recovery.txt"),zipBase=encryptedName.replace(/\.ef$/i,"")||"document",zipName=zipBase+"-encrypted.zip";try{var zip=makeStoredZip([{name:encryptedName,data:buildSecretText(secretEnvelope)},{name:noteName,data:lastCredentialNote}]);var a=document.createElement("a");a.href=URL.createObjectURL(new Blob([zip],{type:"application/zip"}));a.download=zipName;document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(a.href);},1000);setCryptoStatus("Exported ZIP with encrypted .ef + password/recovery note: "+zipName,"ok");}catch(e){setCryptoStatus("ZIP export unavailable here.","err");}}
+function loadSecretText(raw,filename){secretEnvelope=parseSecretText(raw);lastRecoveryKey="";lastEncryptionPassword="";lastCredentialFilename="";lastCredentialNote="";lastEncryptedFilename=filename||"document.ef";decryptedImportText="";cryptoImportLinked=false;$("cryptoReadOnlyText").value="";$("cryptoReadOnlyStatus").textContent="Decrypt the imported file to populate Read Only Mode.";setReleaseButtonState(false);$("cryptoReleaseEditor").disabled=true;$("recoveryBox").hidden=true;$("secretFileName").textContent=lastEncryptedFilename+" — valid EF-SECRET/1";setCryptoExportReady(false);setCryptoStatus("Encrypted file loaded. Password is required first.","ok");}
+function openCryptoPasswordModal(){if(!secretEnvelope)return;cryptoPasswordAttempts=0;cryptoPasswordPending=true;$("cryptoPasswordFile").textContent=lastEncryptedFilename||"Encrypted .ef file";$("cryptoPasswordInput").value="";$("cryptoPasswordAttempt").textContent="Attempt 0 of 3";$("cryptoPasswordError").hidden=true;$("cryptoPasswordRecovery").hidden=true;$("cryptoPasswordReset").hidden=true;$("cryptoPasswordUnlock").hidden=false;$("cryptoPasswordCancel").hidden=false;$("cryptoPasswordModal").hidden=false;document.body.style.overflow="hidden";setTimeout(function(){$("cryptoPasswordInput").focus();},0);}
+function closeCryptoPasswordModal(){cryptoPasswordPending=false;$("cryptoPasswordModal").hidden=true;document.body.style.overflow="";}
+async function unlockFromPasswordModal(){if(!cryptoPasswordPending||!secretEnvelope)return;var password=$("cryptoPasswordInput").value;if(!password){$("cryptoPasswordError").textContent="Enter the file password.";$("cryptoPasswordError").hidden=false;return;}$("cryptoPasswordError").hidden=true;try{setCryptoStatus("Decrypting…");var cekBytes=await getCekByPassword(password),cek=await crypto.subtle.importKey("raw",cekBytes,{name:"AES-GCM"},false,["encrypt","decrypt"]),plain=await decryptPayload(cek,secretEnvelope.payload);closeCryptoPasswordModal();setReadOnlyImportText(plain,"Password verified. Document is decrypted in Read Only Mode; the main editor has not been changed.");setCryptoSubtab("import");setEditorTab(false);say("Encrypted .ef decrypted in Read Only Mode");setCryptoStatus("Password verified. Review the decrypted document, then release it to the .ef Editor when ready.","ok");}catch(e){cryptoPasswordAttempts++;$("cryptoPasswordAttempt").textContent="Attempt "+cryptoPasswordAttempts+" of 3";$("cryptoPasswordError").textContent="Wrong password. The encrypted plaintext was not opened.";$("cryptoPasswordError").hidden=false;if(cryptoPasswordAttempts>=cryptoPasswordMaxAttempts){$("cryptoPasswordRecovery").hidden=false;$("cryptoPasswordUnlock").hidden=true;$("cryptoPasswordReset").hidden=false;$("cryptoPasswordCancel").hidden=false;setCryptoStatus("Three password attempts failed. Use the Recovery Key to reset the password.","err");}}}
+async function loadSecretFile(file){try{var raw=await file.text();if(!isSecretText(raw)){pendingPlainImportText=String(raw||"");pendingPlainImportName=file.name||"document.ef";decryptedImportText="";cryptoImportLinked=false;$("cryptoReadOnlyText").value="";$("cryptoReadOnlyStatus").textContent="No decrypted encrypted document loaded.";setReleaseButtonState(false);$("cryptoReleaseEditor").disabled=true;$("cryptoAlreadyDecryptedFile").textContent=pendingPlainImportName+" is already a readable .ef file and does not require a password.";$("cryptoAlreadyDecryptedModal").hidden=false;setCryptoStatus("Readable .ef file detected. No decryption is needed.","ok");return;}loadSecretText(raw,file.name);setCryptoSubtab("import");setEditorTab(false);openCryptoPasswordModal();}catch(e){secretEnvelope=null;setCryptoExportReady(false);$("secretFileName").textContent="Invalid .ef file.";setCryptoStatus(e&&e.message?e.message:"Could not read .ef file.","err");}}
+async function getCekByPassword(password){if(!secretEnvelope)throw new Error("Import an encrypted .ef file first.");if(!password)throw new Error("Enter the file password.");var salt=fromB64u(secretEnvelope.salt),key=await derivePasswordKey(password,salt,secretEnvelope.iterations);return new Uint8Array(await unwrapCek(key,secretEnvelope.passwordWrap));}
+async function getCekByRecovery(text){if(!secretEnvelope)throw new Error("Import an encrypted .ef file first.");var key=await importRecoveryKey(text);return new Uint8Array(await unwrapCek(key,secretEnvelope.recoveryWrap));}
+async function decryptToEditor(){try{setCryptoStatus("Decrypting…");var cekBytes=await getCekByRecovery($("decRecovery").value.trim()),cek=await crypto.subtle.importKey("raw",cekBytes,{name:"AES-GCM"},false,["encrypt","decrypt"]),plain=await decryptPayload(cek,secretEnvelope.payload);setReadOnlyImportText(plain,"Recovery Key verified. Document is decrypted in Read Only Mode; the main editor has not been changed.");setCryptoSubtab("import");setEditorTab(false);say("Encrypted .ef decrypted in Read Only Mode");setCryptoStatus("Recovery Key verified. Review the decrypted document, then release it to the .ef Editor when ready.","ok");}catch(e){setCryptoStatus("Wrong Recovery Key or corrupted file. Plaintext was not opened.","err");}}
+async function resetPasswordWithRecovery(){try{if(!secretEnvelope)throw new Error("Import an encrypted .ef file first.");var rk=$("decRecovery").value.trim();if(!rk)throw new Error("Enter the persistent Recovery Key.");var np=$("resetPassword").value,np2=$("resetPassword2").value;validatePasswordPair(np,np2);setCryptoStatus("Resetting password…");var cekBytes=await getCekByRecovery(rk),salt=randomBytes(16),key=await derivePasswordKey(np,salt),passwordWrap=await wrapCek(key,cekBytes);var env=JSON.parse(JSON.stringify(secretEnvelope));env.kdf="PBKDF2-SHA-256";env.iterations=cryptoPBKDF2Iterations;env.salt=b64u(salt);env.passwordWrap=passwordWrap;secretEnvelope=env;lastRecoveryKey=rk;lastEncryptionPassword=np;lastEncryptedFilename=lastEncryptedFilename||($("secretFileName").textContent.split(" — ")[0]||((fname||"document")+".ef"));lastCredentialFilename=(lastEncryptedFilename||((fname||"document")+".ef")).replace(/\.ef$/i,"")+".password-recovery.txt";lastCredentialNote=buildCredentialNote(lastEncryptedFilename,lastEncryptionPassword,lastRecoveryKey);$("resetPassword").value="";$("resetPassword2").value="";$("recoveryKeyText").textContent=lastRecoveryKey;$("recoveryBox").hidden=false;setCryptoExportReady(true);setCryptoSubtab("create");setCryptoStatus("Password reset. The same Recovery Key remains valid and can be reused. Export the updated encrypted file, note, or ZIP.","ok");say("Password reset prepared for "+lastEncryptedFilename);}catch(e){setCryptoStatus(e&&e.message?e.message:"Password reset failed.","err");}}
+$("tabEditor").onclick=function(){setEditorTab(true);};
+$("tabCrypto").onclick=function(){setEditorTab(false);setCryptoSubtab("create");};
+$("cryptoTabCreate").onclick=function(){setCryptoSubtab("create");};
+$("cryptoTabImport").onclick=function(){setCryptoSubtab("import");};
+$("cryptoFromEditor").onclick=function(){if(!src.value){setCryptoSubtab("create");setCryptoStatus("The Editor is empty. Add some .ef text first.","err");setEditorTab(false);return;}invalidatePreparedCrypto();$("encPassword").value="";$("encPassword2").value="";$("cryptoSource").value=src.value;setCryptoSubtab("create");setEditorTab(false);$("cryptoSource").focus();updateEncryptPasswordState();setCryptoStatus("Editor text imported into the Encrypt & Decrypt workspace. Set a password, then encrypt and export.","ok");};
+$("cryptoReleaseEditor").onclick=function(){if(!decryptedImportText.trim())return;if($("cryptoReleaseEditor").classList.contains("crypto-release-done")){setEditorTab(true);setCryptoSubtab("import");say("Opened the .ef Text Editor from the imported document");setTimeout(function(){src.focus();},0);return;}var plain=decryptedImportText;load(plain);fname=(lastEncryptedFilename||"document.ef").replace(/\.ef$/i,"")||fname;setReleaseButtonState(true);$("cryptoReleaseEditor").disabled=false;$("cryptoReadOnlyText").value=plain;$("cryptoReadOnlyStatus").textContent="Released to the .ef Editor. Read Only Mode remains the original imported decrypted snapshot.";setEditorTab(false);setCryptoSubtab("import");say("Encryption released to the .ef Editor");setCryptoStatus("Encryption released. Read Only Mode keeps the original imported content. Use Go to text editor to return to the main editor.","ok");};
+function openEncryptedTextModal(){if(!secretEnvelope)return;$("cryptoEncryptedTextOut").textContent=buildSecretText(secretEnvelope);$("cryptoEncryptedTextModal").hidden=false;document.body.style.overflow="hidden";}
+function closeEncryptedTextModal(){$("cryptoEncryptedTextModal").hidden=true;if($("cryptoPasswordModal").hidden && $("clearModal").hidden && $("mdmodal").hidden && $("cryptoEmptyModal").hidden)document.body.style.overflow="";}
+function toggleCryptoImportInfo(){var b=$("cryptoImportInfo"),p=$("cryptoImportInfoPopover"),show=p.hidden;p.hidden=!show;b.setAttribute("aria-expanded",String(show));}
+$("cryptoSource").addEventListener("input",function(){if(secretEnvelope||lastCredentialNote)invalidatePreparedCrypto();else updateEncryptPasswordState();});
+$("encPassword").addEventListener("input",updateEncryptPasswordState);
+$("encPassword2").addEventListener("input",updateEncryptPasswordState);
+$("encryptCurrent").onclick=encryptCurrentEditor;
+$("exportEncrypted").onclick=exportEncrypted;
+$("exportCredentials").onclick=exportCredentials;
+$("exportZip").onclick=exportZip;
+$("secretFile").addEventListener("change",function(e){var f=e.target.files[0];if(f)loadSecretFile(f);e.target.value="";});
+$("decryptRecovery").onclick=decryptToEditor;
+$("resetPasswordBtn").onclick=resetPasswordWithRecovery;
+$("copyRecovery").onclick=function(){if(lastRecoveryKey)copy(lastRecoveryKey,this);};
+$("cryptoPasswordUnlock").onclick=unlockFromPasswordModal;
+$("cryptoPasswordCancel").onclick=closeCryptoPasswordModal;
+$("cryptoPasswordReset").onclick=function(){closeCryptoPasswordModal();setCryptoSubtab("import");$("decRecovery").focus();setCryptoStatus("Use your persistent Recovery Key in Reset Password to create a new file password.","err");};
+$("cryptoPasswordModal").addEventListener("click",function(e){if(e.target===$("cryptoPasswordModal"))closeCryptoPasswordModal();});
+$("cryptoPasswordInput").addEventListener("keydown",function(e){if(e.key==="Enter")unlockFromPasswordModal();});
+document.querySelectorAll("[data-password-toggle]").forEach(function(btn){btn.addEventListener("click",function(){var input=$(btn.getAttribute("data-password-toggle"));if(!input)return;var icon=btn.querySelector("i");var show=input.type==="password";input.type=show?"text":"password";if(icon)icon.className=show?"fa-solid fa-eye-slash":"fa-solid fa-eye";btn.setAttribute("aria-label",show?"Hide password":"Show password");btn.setAttribute("title",show?"Hide password":"Show password");});});
+$("viewEncryptedText").onclick=openEncryptedTextModal;
+$("cryptoEncryptedClose").onclick=closeEncryptedTextModal;
+$("cryptoEncryptedCopy").onclick=function(){if(secretEnvelope)copy(buildSecretText(secretEnvelope),this);};
+$("cryptoEncryptedTextModal").addEventListener("click",function(e){if(e.target===$("cryptoEncryptedTextModal"))closeEncryptedTextModal();});
+$("cryptoImportInfo").onclick=toggleCryptoImportInfo;
+document.addEventListener("click",function(e){var wrap=$("cryptoImportInfo").closest(".crypto-info");if(!wrap.contains(e.target) && !$("cryptoImportInfoPopover").hidden){$("cryptoImportInfoPopover").hidden=true;$("cryptoImportInfo").setAttribute("aria-expanded","false");}});
+$("cryptoMainInfo").addEventListener("click",function(e){e.stopPropagation();var p=$("cryptoMainInfoPopover"),open=p.hidden;p.hidden=!open;this.setAttribute("aria-expanded",open?"true":"false");});
+document.addEventListener("click",function(e){var wrap=$("cryptoMainInfo").closest(".crypto-info");if(!wrap.contains(e.target) && !$("cryptoMainInfoPopover").hidden){$("cryptoMainInfoPopover").hidden=true;$("cryptoMainInfo").setAttribute("aria-expanded","false");}});
+$("cryptoAlreadyDecryptedCancel").onclick=function(){$("cryptoAlreadyDecryptedModal").hidden=true;pendingPlainImportText="";pendingPlainImportName="";};
+$("cryptoAlreadyDecryptedView").onclick=function(){if(!pendingPlainImportText&&pendingPlainImportText!=="")return;var text=pendingPlainImportText,name=pendingPlainImportName||"document.ef";$('cryptoAlreadyDecryptedModal').hidden=true;pendingPlainImportText="";pendingPlainImportName="";load(text);fname=name.replace(/\.[^.]+$/,"" )||"document";setEditorTab(true);setCryptoStatus("");say("Viewed readable .ef in Text Editor");src.focus();};
+$("cryptoAlreadyDecryptedModal").addEventListener("click",function(e){if(e.target===$("cryptoAlreadyDecryptedModal")){pendingPlainImportText="";pendingPlainImportName="";$("cryptoAlreadyDecryptedModal").hidden=true;}});
+$("cryptoEmptyWorkspace").onclick=function(){$("cryptoEmptyModal").hidden=false;};
+$("cryptoEmptyCancel").onclick=function(){$("cryptoEmptyModal").hidden=true;};
+$("cryptoEmptyConfirm").onclick=function(){$("cryptoEmptyModal").hidden=true;resetCryptoWorkspace();};
+$("cryptoEmptyModal").addEventListener("mousedown",function(e){if(e.target===$("cryptoEmptyModal"))$("cryptoEmptyModal").hidden=true;});
+document.addEventListener("keydown",function(e){if(e.key==="Escape"){if(!$("cryptoPasswordModal").hidden)closeCryptoPasswordModal();if(!$("cryptoAlreadyDecryptedModal").hidden){$("cryptoAlreadyDecryptedModal").hidden=true;pendingPlainImportText="";pendingPlainImportName="";}if(!$("cryptoEmptyModal").hidden)$("cryptoEmptyModal").hidden=true;if(!$("cryptoEncryptedTextModal").hidden)closeEncryptedTextModal();if(!$("cryptoImportInfoPopover").hidden){$("cryptoImportInfoPopover").hidden=true;$("cryptoImportInfo").setAttribute("aria-expanded","false");}}});
+
+var d="";try{d=localStorage.getItem("ef-draft")||"";}catch(e){}
+drawChips();setCryptoSubtab("create");load(d||SAMPLE);updateEncryptPasswordState();
+})();
+</script>
+</body>
+</html>
